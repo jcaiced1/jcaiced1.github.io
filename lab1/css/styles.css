@@ -85,10 +85,15 @@ ul {
 footer {
   font-size: 0.85em;
   color: #9aa0a6;
-  margin-top: 35px;
+  margin-top: 50px;
   padding-bottom: 25px;
 }
 
 .csumb-logo {
   width: 120px;
+}
+
+iframe {
+  display: block;
+  margin: 0 auto;
 }

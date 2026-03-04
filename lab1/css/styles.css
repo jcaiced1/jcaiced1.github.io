@@ -2,7 +2,7 @@ body {
   background-color: black;
   color: gray;
   margin: 0;
-  padding: 0;
+  padding: 0 14px;
   font-family: "Open Sans", sans-serif;
   font-weight: 400;
 }
@@ -35,6 +35,7 @@ main {
   align-items: center;
   gap: 40px;
   margin-top: 20px;
+  flex-wrap: wrap;
 }
 
 figure {
@@ -49,12 +50,15 @@ figure img {
 #content {
   margin-top: 20px;
   text-align: center;
+  padding: 0 10px;
 }
 
 table {
   margin: 0 auto;
   border-collapse: collapse;
   font-size: 1.1em;
+  width: 100%;
+  max-width: 720px;
 }
 
 td {
@@ -74,9 +78,11 @@ td strong {
 }
 
 ul {
-  width: 520px;
+  width: 100%;
   margin: 0 auto;
   text-align: left;
+  max-width: 520px;
+  padding-right: 10px;
 }
 
 .hobby {
@@ -103,4 +109,41 @@ iframe{
 
 h1 {
   font-weight: 700;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+@media (max-width: 768px) {
+  h1 {
+    font-size: 2.2em;
+  }
+
+  nav a {
+    font-size: 1.05em;
+    padding: 8px;
+  }
+
+  nav a:hover {
+    font-size: 1.05em;
+  }
+
+  main {
+    flex-direction: column;
+    gap: 18px;
+  }
+
+  figure img {
+    width: 180px;
+  }
+
+  td {
+    padding: 10px 10px;
+  }
+
+  ul {
+    text-align: left;
+    font-size: 1.05em;
+  }
 }

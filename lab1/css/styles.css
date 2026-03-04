@@ -103,6 +103,9 @@ footer {
 
 .csumb-logo {
   width: 120px;
+  background: white;
+  padding: 8px;
+  border-radius: 6px;
 }
 
 iframe {

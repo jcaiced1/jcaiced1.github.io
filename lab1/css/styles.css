@@ -7,7 +7,11 @@ body {
   font-weight: 400;
 }
 
-header, main, nav, footer, #content {
+header,
+main,
+nav,
+footer,
+#content {
   text-align: center;
 }
 
@@ -21,13 +25,13 @@ nav a {
 }
 
 nav a:hover {
-  color: orange;
   border-bottom: 2px solid orange;
+  font-size: 1.3em;
 }
 
 nav a.active {
-    border-bottom: 3px solid orange;
-    font-weight: bold;
+  border-bottom: 3px solid orange;
+  font-weight: bold;
 }
 
 main {
@@ -102,10 +106,10 @@ footer {
   width: 120px;
 }
 
-iframe{
-  display:block;
-  max-width:700px;
-  margin:20px auto;
+iframe {
+  display: block;
+  max-width: 700px;
+  margin: 20px auto;
 }
 
 h1 {
@@ -119,15 +123,6 @@ h1 {
 th {
   padding: 10px 18px;
   color: orange;
-}
-
-nav{
-  position: sticky;
-  top: 0;
-  z-index: 1000;
-  background: black;
-  padding: 10px 0;
-  border-bottom: 1px solid #222;
 }
 
 @media (max-width: 768px) {

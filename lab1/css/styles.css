@@ -21,8 +21,8 @@ nav a {
 }
 
 nav a:hover {
+  color: orange;
   border-bottom: 2px solid orange;
-  font-size: 1.3em;
 }
 
 nav a.active {
@@ -119,6 +119,15 @@ h1 {
 th {
   padding: 10px 18px;
   color: orange;
+}
+
+nav{
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+  background: black;
+  padding: 10px 0;
+  border-bottom: 1px solid #222;
 }
 
 @media (max-width: 768px) {

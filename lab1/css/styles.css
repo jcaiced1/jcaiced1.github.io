@@ -127,6 +127,11 @@ th {
   color: orange;
 }
 
+html {
+  overflow-y: scroll;
+  scrollbar-gutter: stable;
+}
+
 @media (max-width: 768px) {
   h1 {
     font-size: 2.2em;

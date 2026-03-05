@@ -1,0 +1,104 @@
+body {
+  background-color: #0f172a;
+  color: #dbe4ee;
+  margin: 0;
+  padding: 0 12px;
+  font-family: "Poppins", Arial, Helvetica, sans-serif;
+}
+
+header,
+main,
+footer,
+nav {
+  text-align: center;
+}
+
+h1 {
+  color: #f8fafc;
+}
+
+nav a {
+  color: #f8fafc;
+  text-decoration: none;
+  margin: 0 8px;
+  padding-bottom: 3px;
+}
+
+nav a:hover,
+nav a.active {
+  color: #38bdf8;
+  border-bottom: 2px solid #38bdf8;
+}
+
+main {
+  max-width: 900px;
+  margin: 24px auto;
+}
+
+.card {
+  background-color: #1e293b;
+  border: 1px solid #334155;
+  border-radius: 8px;
+  padding: 14px;
+  margin-bottom: 16px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.25);
+  text-align: left;
+}
+
+.card h2 {
+  margin-top: 0;
+  color: #7dd3fc;
+}
+
+a {
+  color: #7dd3fc;
+}
+
+.topic-image {
+  display: block;
+  width: min(100%, 420px);
+  margin: 16px auto 4px;
+  border-radius: 8px;
+}
+
+ul,
+ol {
+  padding-left: 20px;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+th,
+td {
+  border: 1px solid #475569;
+  padding: 10px;
+}
+
+th {
+  background-color: #334155;
+}
+
+details {
+  margin-top: 8px;
+}
+
+summary {
+  cursor: pointer;
+  color: #bae6fd;
+}
+
+footer {
+  font-size: 0.9em;
+  margin: 28px 0 18px;
+  color: #a7b1bb;
+}
+
+.csumb-logo {
+  width: 180px;
+  background-color: #ffffff;
+  padding: 6px;
+  border-radius: 6px;
+}

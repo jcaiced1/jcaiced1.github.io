@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="420" height="260" viewBox="0 0 420 260" role="img" aria-labelledby="title">
+  <title>Cybersecurity Shield</title>
+  <rect width="420" height="260" rx="20" fill="#0b1220" />
+  <path d="M210 42l82 28v56c0 56-41 89-82 102-41-13-82-46-82-102V70l82-28z" fill="#1e40af" stroke="#93c5fd" stroke-width="6" />
+  <path d="M210 86c-24 0-43 19-43 43v47h86v-47c0-24-19-43-43-43zm0 22c12 0 21 9 21 21v6h-42v-6c0-12 9-21 21-21z" fill="#dbeafe" />
+  <text x="210" y="228" text-anchor="middle" fill="#7dd3fc" font-size="20" font-family="Poppins, Arial, sans-serif">Cybersecurity</text>
+</svg>

@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>HW1 - Cybersecurity</title>
+  <title>HW1 - Incident Response</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet" />
@@ -11,41 +11,47 @@
 </head>
 <body>
   <header>
-    <h1>HW 1: Cybersecurity Basics</h1>
+    <h1>Incident Response</h1>
     <hr />
     <nav>
-      <a class="active" href="index.html">Home</a>
+      <a href="index.html">Home</a>
       <a href="threats.html">Threats</a>
       <a href="protection.html">Protection</a>
-      <a href="incident-response.html">Incident Response</a>
+      <a class="active" href="incident-response.html">Incident Response</a>
       <a href="security-awareness.html">Security Awareness</a>
     </nav>
   </header>
 
   <main>
     <article class="card">
-      <h2>About this mini website</h2>
-      <p>
-        This homework site focuses on one topic: <strong>Cybersecurity</strong>. Each page explains an important area,
-        from common attacks to practical defenses and response steps.
-      </p>
-      <img class="topic-image" src="img/cybersecurity-shield.svg" alt="Cybersecurity shield icon" />
+      <h2>Response steps</h2>
+      <table>
+        <tr>
+          <th>Step</th>
+          <th>Goal</th>
+        </tr>
+        <tr>
+          <td>Identify</td>
+          <td>Confirm what happened and what systems are affected.</td>
+        </tr>
+        <tr>
+          <td>Contain</td>
+          <td>Stop the spread by isolating impacted machines.</td>
+        </tr>
+        <tr>
+          <td>Recover</td>
+          <td>Restore operations from clean backups and monitor closely.</td>
+        </tr>
+      </table>
     </article>
 
     <article class="card">
-      <h2>Two new HTML tags I used</h2>
-      <ul>
-        <li><code>&lt;article&gt;</code> to organize each content section.</li>
-        <li><code>&lt;details&gt;</code> with <code>&lt;summary&gt;</code> for expandable notes.</li>
-      </ul>
-    </article>
-
-    <article class="card">
-      <h2>Two new CSS properties I used</h2>
-      <ul>
-        <li><code>box-shadow</code> to add depth to cards.</li>
-        <li><code>border-radius</code> to make sections and images softer.</li>
-      </ul>
+      <h2>After action review</h2>
+      <p>Teams document lessons learned and improve policies after an incident.</p>
+      <details>
+        <summary>Good practice</summary>
+        <p>Write a short timeline with what happened, impact, and prevention ideas.</p>
+      </details>
     </article>
   </main>
 

@@ -1,8 +1,0 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="520" height="140" viewBox="0 0 520 140" role="img" aria-labelledby="title">
-  <title>California State University Monterey Bay</title>
-  <rect width="520" height="140" fill="#ffffff"/>
-  <circle cx="56" cy="70" r="24" fill="none" stroke="#0b3a6e" stroke-width="7"/>
-  <circle cx="56" cy="70" r="10" fill="#0b3a6e"/>
-  <text x="94" y="58" fill="#0b3a6e" font-size="15" font-family="Poppins, Arial, sans-serif">California State University</text>
-  <text x="94" y="92" fill="#0b3a6e" font-size="30" font-family="Poppins, Arial, sans-serif">Monterey Bay</text>
-</svg>

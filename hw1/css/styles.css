@@ -2,7 +2,7 @@ body {
   margin: 0;
   background-color: #f7f8fa;
   color: #1f2937;
-  font-family: "Poppins", Arial, Helvetica, sans-serif;
+  font-family: "Special Elite", "Courier New", Courier, monospace;
   line-height: 1.6;
 }
 
@@ -16,6 +16,7 @@ footer {
 
 header {
   padding-top: 28px;
+  text-align: center;
 }
 
 h1 {
@@ -33,8 +34,14 @@ hr {
 nav {
   display: flex;
   flex-wrap: wrap;
+  justify-content: center;
   gap: 10px;
   margin-bottom: 18px;
+}
+
+h1,
+h2 {
+  font-family: "Patrick Hand", "Comic Sans MS", cursive;
 }
 
 nav a {

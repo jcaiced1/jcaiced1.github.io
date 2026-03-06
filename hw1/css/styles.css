@@ -1,0 +1,120 @@
+body {
+  margin: 0;
+  background-color: #f7f8fa;
+  color: #1f2937;
+  font-family: "Poppins", Arial, Helvetica, sans-serif;
+  line-height: 1.6;
+}
+
+header,
+main,
+footer {
+  max-width: 860px;
+  margin: 0 auto;
+  padding: 0 16px;
+}
+
+header {
+  padding-top: 28px;
+}
+
+h1 {
+  margin: 0;
+  font-size: 2rem;
+  color: #0f172a;
+}
+
+hr {
+  border: 0;
+  border-top: 1px solid #d6dae1;
+  margin: 14px 0;
+}
+
+nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 18px;
+}
+
+nav a {
+  text-decoration: none;
+  color: #1e3a8a;
+  font-weight: 500;
+  padding: 3px 0;
+}
+
+nav a.active,
+nav a:hover {
+  border-bottom: 2px solid #1e3a8a;
+}
+
+section {
+  margin-bottom: 22px;
+  background-color: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 4px;
+  padding: 16px;
+}
+
+h2 {
+  margin-top: 0;
+  color: #111827;
+  font-size: 1.25rem;
+}
+
+a {
+  color: #1e40af;
+}
+
+.hero-image {
+  display: block;
+  width: min(100%, 460px);
+  margin: 14px auto 2px;
+  border: 1px solid #d6dae1;
+  border-radius: 4px;
+}
+
+ul,
+ol {
+  padding-left: 22px;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+th,
+td {
+  border: 1px solid #d6dae1;
+  padding: 9px;
+  text-align: left;
+}
+
+th {
+  background-color: #eff3f8;
+}
+
+details {
+  margin-top: 10px;
+}
+
+summary {
+  color: #1e3a8a;
+  cursor: pointer;
+}
+
+footer {
+  margin-top: 24px;
+  margin-bottom: 18px;
+  font-size: 0.9rem;
+  color: #4b5563;
+  text-align: center;
+}
+
+.csumb-logo {
+  display: block;
+  width: 240px;
+  margin: 10px auto 0;
+}

@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="460" height="260" viewBox="0 0 460 260" role="img" aria-labelledby="title">
+  <title>Cybersecurity illustration</title>
+  <rect width="460" height="260" fill="#f3f6fb"/>
+  <rect x="36" y="36" width="388" height="188" rx="10" fill="#ffffff" stroke="#d6dae1"/>
+  <path d="M230 62l74 26v50c0 52-37 82-74 94-37-12-74-42-74-94V88l74-26z" fill="#1e40af"/>
+  <rect x="202" y="126" width="56" height="44" rx="6" fill="#ffffff"/>
+  <path d="M216 126v-10c0-8 6-14 14-14s14 6 14 14v10" fill="none" stroke="#1e40af" stroke-width="6"/>
+</svg>

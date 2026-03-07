@@ -4,6 +4,7 @@ body {
   color: #1f2937;
   font-family: "Special Elite", "Courier New", Courier, monospace;
   line-height: 1.6;
+  cursor: url("../img/cyber-cursor.svg") 8 8, auto;
 }
 
 header,

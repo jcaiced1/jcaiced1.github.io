@@ -1,0 +1,44 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 500" role="img" aria-labelledby="title desc">
+  <title id="title">Incident response illustration</title>
+  <desc id="desc">Flow of detection, containment, and recovery with connected icons.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#f8fafc"/>
+      <stop offset="100%" stop-color="#e2e8f0"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="800" height="500" fill="url(#bg)"/>
+
+  <g fill="none" stroke="#64748b" stroke-width="8" stroke-linecap="round">
+    <line x1="220" y1="250" x2="360" y2="250"/>
+    <line x1="440" y1="250" x2="580" y2="250"/>
+    <polyline points="340,235 360,250 340,265"/>
+    <polyline points="560,235 580,250 560,265"/>
+  </g>
+
+  <g>
+    <circle cx="160" cy="250" r="85" fill="#dbeafe" stroke="#2563eb" stroke-width="6"/>
+    <circle cx="145" cy="238" r="22" fill="none" stroke="#1d4ed8" stroke-width="8"/>
+    <line x1="160" y1="254" x2="185" y2="279" stroke="#1d4ed8" stroke-width="8" stroke-linecap="round"/>
+  </g>
+
+  <g>
+    <circle cx="400" cy="250" r="85" fill="#fee2e2" stroke="#dc2626" stroke-width="6"/>
+    <rect x="360" y="210" width="80" height="80" rx="14" fill="#b91c1c"/>
+    <line x1="360" y1="210" x2="440" y2="290" stroke="#fca5a5" stroke-width="8"/>
+    <line x1="440" y1="210" x2="360" y2="290" stroke="#fca5a5" stroke-width="8"/>
+  </g>
+
+  <g>
+    <circle cx="640" cy="250" r="85" fill="#dcfce7" stroke="#16a34a" stroke-width="6"/>
+    <path d="M602 252 L628 278 L678 224" fill="none" stroke="#15803d" stroke-width="12" stroke-linecap="round" stroke-linejoin="round"/>
+  </g>
+
+  <g fill="#94a3b8">
+    <circle cx="95" cy="120" r="6"/>
+    <circle cx="730" cy="90" r="6"/>
+    <circle cx="715" cy="410" r="6"/>
+    <circle cx="105" cy="395" r="6"/>
+  </g>
+</svg>

@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 500" role="img" aria-labelledby="title desc">
+  <title id="title">Security awareness illustration</title>
+  <desc id="desc">User checking messages with alert and verification symbols.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#ecfeff"/>
+      <stop offset="100%" stop-color="#cffafe"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="800" height="500" fill="url(#bg)"/>
+
+  <rect x="200" y="90" width="400" height="320" rx="22" fill="#ffffff" stroke="#0f766e" stroke-width="6"/>
+  <rect x="230" y="130" width="340" height="55" rx="10" fill="#ccfbf1"/>
+  <rect x="230" y="205" width="240" height="28" rx="8" fill="#99f6e4"/>
+  <rect x="230" y="248" width="290" height="28" rx="8" fill="#99f6e4"/>
+  <rect x="230" y="291" width="210" height="28" rx="8" fill="#99f6e4"/>
+
+  <g>
+    <circle cx="560" cy="205" r="36" fill="#fef3c7" stroke="#d97706" stroke-width="5"/>
+    <polygon points="560,182 572,206 548,206" fill="#f59e0b"/>
+    <circle cx="560" cy="220" r="5" fill="#b45309"/>
+  </g>
+
+  <g>
+    <circle cx="560" cy="305" r="38" fill="#dcfce7" stroke="#15803d" stroke-width="5"/>
+    <path d="M544 305 L556 317 L578 293" fill="none" stroke="#166534" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
+  </g>
+
+  <g fill="#0f766e" opacity="0.8">
+    <circle cx="155" cy="125" r="10"/>
+    <circle cx="655" cy="130" r="8"/>
+    <circle cx="145" cy="370" r="9"/>
+    <circle cx="660" cy="370" r="10"/>
+  </g>
+</svg>

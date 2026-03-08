@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 500" role="img" aria-labelledby="title desc">
+  <title id="title">Cyber protection illustration</title>
+  <desc id="desc">Shield with lock and defensive network nodes.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#e0f2fe"/>
+      <stop offset="100%" stop-color="#dbeafe"/>
+    </linearGradient>
+    <linearGradient id="shield" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#2563eb"/>
+      <stop offset="100%" stop-color="#1d4ed8"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="800" height="500" fill="url(#bg)"/>
+
+  <g stroke="#93c5fd" stroke-width="4" fill="none" opacity="0.8">
+    <circle cx="140" cy="110" r="22"/>
+    <circle cx="690" cy="120" r="18"/>
+    <circle cx="120" cy="390" r="20"/>
+    <circle cx="700" cy="380" r="24"/>
+    <line x1="162" y1="110" x2="290" y2="170"/>
+    <line x1="672" y1="130" x2="515" y2="170"/>
+    <line x1="140" y1="368" x2="295" y2="328"/>
+    <line x1="676" y1="370" x2="510" y2="328"/>
+  </g>
+
+  <path d="M400 80 L560 140 L540 320 C530 390 470 438 400 460 C330 438 270 390 260 320 L240 140 Z" fill="url(#shield)" stroke="#1e3a8a" stroke-width="6"/>
+  <path d="M400 120 L525 165 L509 312 C501 363 459 401 400 423 C341 401 299 363 291 312 L275 165 Z" fill="#bfdbfe" opacity="0.35"/>
+
+  <rect x="345" y="220" width="110" height="95" rx="14" fill="#f8fafc" stroke="#1e3a8a" stroke-width="6"/>
+  <path d="M362 220 V195 C362 168 382 148 410 148 C438 148 458 168 458 195 V220" fill="none" stroke="#1e3a8a" stroke-width="10" stroke-linecap="round"/>
+  <circle cx="400" cy="263" r="12" fill="#1e3a8a"/>
+  <rect x="394" y="270" width="12" height="26" rx="6" fill="#1e3a8a"/>
+</svg>

@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Math Guess Challenge | CSUMB</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="css/styles.css" />
+  </head>
+  <body>
+    <main class="page-shell">
+      <header class="hero">
+        <p class="hero__eyebrow">Lab 2 · JavaScript</p>
+        <h1>Math Guess Challenge</h1>
+        <p class="hero__subtitle">
+          Guess the hidden number between <strong>1</strong> and <strong>99</strong> in up to
+          <strong>7 attempts</strong>.
+        </p>
+      </header>
+
+      <section class="game-card" aria-live="polite">
+        <div class="game-grid">
+          <label for="guessInput">Enter your guess</label>
+          <div class="controls">
+            <input id="guessInput" type="number" min="1" max="99" placeholder="e.g. 42" />
+            <button id="guessBtn" type="button">Guess</button>
+            <button id="resetBtn" type="button" class="hidden">Reset Game</button>
+          </div>
+        </div>
+
+        <p id="statusMessage" class="status-message">Start by typing a number and pressing Guess.</p>
+
+        <div class="stats">
+          <p><span>Attempts used:</span> <strong id="attemptCount">0 / 7</strong></p>
+          <p><span>Games won:</span> <strong id="winsCount">0</strong></p>
+          <p><span>Games lost:</span> <strong id="lossesCount">0</strong></p>
+        </div>
+
+        <section>
+          <h2>Attempt History</h2>
+          <ol id="attemptList" class="attempt-list"></ol>
+        </section>
+      </section>
+    </main>
+
+    <footer class="site-footer">
+      <img
+        class="site-footer__logo"
+        src="../hw1/img/csumb-logo.png"
+        alt="California State University Monterey Bay logo"
+      />
+      <p>CST336 Internet Programming. &copy; 2026 Jose Caicedo</p>
+    </footer>
+
+    <script src="js/app.js"></script>
+  </body>
+</html>

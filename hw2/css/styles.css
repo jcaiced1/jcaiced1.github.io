@@ -1,9 +1,33 @@
 body {
   min-height: 100vh;
+  position: relative;
+  color: #f8f9fa;
+}
+
+#vanta-bg {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  background: radial-gradient(circle at top, #24415f 0%, #121921 60%, #090d12 100%);
+}
+
+.quiz-shell {
+  max-width: 920px;
+}
+
+.quiz-card {
+  background: rgba(15, 23, 42, 0.78);
+  backdrop-filter: blur(4px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: #f8f9fa;
+}
+
+.quiz-card .text-muted {
+  color: rgba(248, 249, 250, 0.75) !important;
 }
 
 .question-block {
-  border-bottom: 1px solid #e9ecef;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.2);
   padding-bottom: 1rem;
 }
 
@@ -22,7 +46,13 @@ body {
   margin-left: 0.5rem;
 }
 
-.footer-logo {
+footer {
+  position: relative;
+  color: #f8f9fa;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.35);
+}
+
+.csumb-logo {
   max-width: 280px;
   width: 100%;
   height: auto;

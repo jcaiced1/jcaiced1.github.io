@@ -55,6 +55,30 @@ function displayAttempts() {
   document.getElementById("attempt-counter").textContent = `Total times taken: ${current}`;
 }
 
+
+function initAnimatedBackground() {
+  if (typeof window.VANTA === "undefined" || typeof window.THREE === "undefined") {
+    return;
+  }
+
+  window.VANTA.BIRDS({
+    el: "#vanta-bg",
+    mouseControls: true,
+    touchControls: true,
+    gyroControls: false,
+    minHeight: 200.0,
+    minWidth: 200.0,
+    scale: 1.0,
+    scaleMobile: 1.0,
+    backgroundAlpha: 0.0,
+    color1: 0x68a0ff,
+    color2: 0xa3d5ff,
+    birdSize: 1.1,
+    speedLimit: 4.0,
+    separation: 30.0,
+  });
+}
+
 function gradeQuiz(event) {
   event.preventDefault();
   let totalScore = 0;
@@ -119,6 +143,7 @@ function resetQuiz() {
 document.addEventListener("DOMContentLoaded", () => {
   renderQ10();
   displayAttempts();
+  initAnimatedBackground();
 
   document.getElementById("quiz-form").addEventListener("submit", gradeQuiz);
   document.getElementById("quiz-form").addEventListener("reset", () => {

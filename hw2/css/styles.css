@@ -1,0 +1,30 @@
+body {
+  min-height: 100vh;
+}
+
+.question-block {
+  border-bottom: 1px solid #e9ecef;
+  padding-bottom: 1rem;
+}
+
+.question-block:last-of-type {
+  border-bottom: none;
+}
+
+.feedback {
+  min-height: 2rem;
+  font-weight: 600;
+}
+
+.feedback img {
+  width: 24px;
+  height: 24px;
+  margin-left: 0.5rem;
+}
+
+.footer-logo {
+  max-width: 280px;
+  width: 100%;
+  height: auto;
+  opacity: 0.95;
+}

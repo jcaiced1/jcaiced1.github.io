@@ -147,6 +147,15 @@ body {
   color: #111827;
 }
 
+.glass-input:disabled,
+.glass-input[disabled] {
+  background: rgba(16, 24, 39, 0.92);
+  border-color: rgba(255, 255, 255, 0.24);
+  color: #f8f9fa;
+  -webkit-text-fill-color: #f8f9fa;
+  opacity: 1;
+}
+
 .question-actions {
   display: flex;
   flex-wrap: wrap;

@@ -313,6 +313,15 @@ function resetQuiz() {
 }
 
 function handleQuizClick(event) {
+  const optionCard = event.target.closest(".option-card");
+  if (optionCard && !event.target.closest("label, input")) {
+    const input = optionCard.querySelector('input[type="radio"], input[type="checkbox"]');
+    if (input && !input.disabled) {
+      input.click();
+    }
+    return;
+  }
+
   const checkButton = event.target.closest(".check-btn");
   if (checkButton) {
     gradeQuestion(checkButton.dataset.question);

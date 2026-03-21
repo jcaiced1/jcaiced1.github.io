@@ -23,21 +23,10 @@ const characterEpisodes = document.getElementById("character-episodes");
 const characterType = document.getElementById("character-type");
 const characterCreated = document.getElementById("character-created");
 const characterId = document.getElementById("character-id");
-const characterViewer = document.getElementById("character-viewer");
-const viewerCaption = document.getElementById("viewer-caption");
-
-const embeds = {
-  rick: {
-    src: "https://sketchfab.com/models/1a6d20d377d04929a6e5d14fb787e6b3/embed",
-    caption: "3D showcase using a Rick Sanchez Sketchfab model.",
-  },
-  morty: {
-    src: "https://sketchfab.com/models/e2c69b5e1bdb4fdfb4132e0709ce1765/embed",
-    caption: "3D showcase using a Morty Sketchfab model.",
-  },
-};
 
 let currentCharacters = [];
+let catalogCharacters = [];
+const nameFilters = new Map();
 
 function setMessage(message, type = "") {
   formMessage.textContent = message;
@@ -80,16 +69,6 @@ function getStatusClass(status) {
   return "unknown";
 }
 
-function getViewerForCharacter(character) {
-  const name = character.name.toLowerCase();
-
-  if (name.includes("morty")) {
-    return embeds.morty;
-  }
-
-  return embeds.rick;
-}
-
 function formatCreatedDate(value) {
   return new Date(value).toLocaleDateString("en-US", {
     year: "numeric",
@@ -101,6 +80,10 @@ function formatCreatedDate(value) {
 function buildDescription(character) {
   const typeText = character.type ? ` with the subtype ${character.type}` : "";
   return `${character.name} is a ${character.status.toLowerCase()} ${character.species.toLowerCase()}${typeText}. The API shows this character comes from ${character.origin.name}, was last seen in ${character.location.name}, and appears in ${character.episode.length} episode${character.episode.length === 1 ? "" : "s"}.`;
+}
+
+function formatLabel(value) {
+  return value.charAt(0).toUpperCase() + value.slice(1);
 }
 
 function populateSelect(select, values, placeholder, selectedValue = "") {
@@ -115,6 +98,37 @@ function populateSelect(select, values, placeholder, selectedValue = "") {
     }
     select.appendChild(option);
   });
+}
+
+function populateConstrainedSelect(select, values, fallbackLabel, preferredValue = "") {
+  select.innerHTML = "";
+
+  if (values.length === 1) {
+    const option = document.createElement("option");
+    option.value = values[0];
+    option.textContent = formatLabel(values[0]);
+    option.selected = true;
+    select.appendChild(option);
+    select.disabled = true;
+    return;
+  }
+
+  const placeholderOption = document.createElement("option");
+  placeholderOption.value = "";
+  placeholderOption.textContent = fallbackLabel;
+  select.appendChild(placeholderOption);
+
+  values.forEach((value) => {
+    const option = document.createElement("option");
+    option.value = value;
+    option.textContent = formatLabel(value);
+    if (value === preferredValue) {
+      option.selected = true;
+    }
+    select.appendChild(option);
+  });
+
+  select.disabled = false;
 }
 
 async function fetchCatalog() {
@@ -136,16 +150,35 @@ async function fetchCatalog() {
     ...firstPage.results,
     ...remainingPages.flatMap((page) => page.results || []),
   ];
+  catalogCharacters = characters;
 
   const names = [...new Set(characters.map((character) => character.name))].sort((left, right) => {
     return left.localeCompare(right);
   });
-  const species = [...new Set(characters.map((character) => character.species).filter(Boolean))].sort((left, right) => {
-    return left.localeCompare(right);
+
+  names.forEach((name) => {
+    const matchingCharacters = characters.filter((character) => character.name === name);
+    const statuses = [...new Set(matchingCharacters.map((character) => character.status.toLowerCase()))].sort();
+    const species = [...new Set(matchingCharacters.map((character) => character.species.toLowerCase()))].sort();
+    nameFilters.set(name, { statuses, species });
   });
 
-  populateSelect(nameSelect, names, "Select a character", "Rick Sanchez");
-  populateSelect(speciesSelect, species, "Any species");
+  populateSelect(nameSelect, names, "Select a character");
+}
+
+function updateDependentFilters(selectedName, preferredStatus = "", preferredSpecies = "") {
+  const selectedFilterSet = nameFilters.get(selectedName);
+
+  if (!selectedFilterSet) {
+    statusSelect.innerHTML = '<option value="">Select a character first</option>';
+    speciesSelect.innerHTML = '<option value="">Select a character first</option>';
+    statusSelect.disabled = true;
+    speciesSelect.disabled = true;
+    return;
+  }
+
+  populateConstrainedSelect(statusSelect, selectedFilterSet.statuses, "Any available status", preferredStatus);
+  populateConstrainedSelect(speciesSelect, selectedFilterSet.species, "Any available species", preferredSpecies);
 }
 
 function setActiveCharacter(characterIdValue) {
@@ -166,8 +199,6 @@ function setActiveCharacter(characterIdValue) {
 }
 
 function renderCharacterDetail(character) {
-  const viewer = getViewerForCharacter(character);
-
   detailEmpty.classList.add("hidden");
   detailContent.classList.remove("hidden");
 
@@ -186,8 +217,6 @@ function renderCharacterDetail(character) {
   characterType.textContent = character.type || "No subtype listed";
   characterCreated.textContent = formatCreatedDate(character.created);
   characterId.textContent = String(character.id);
-  characterViewer.src = viewer.src;
-  viewerCaption.textContent = viewer.caption;
 }
 
 function buildCharacterItem(character) {
@@ -295,22 +324,48 @@ async function handleSearch(event) {
   }
 }
 
+function chooseRandomName() {
+  const names = [...nameFilters.keys()];
+  return names[Math.floor(Math.random() * names.length)] || "";
+}
+
 async function init() {
   toggleLoading(true);
   setMessage("Loading available character and species options...", "success");
 
   try {
     await fetchCatalog();
-    setMessage("Dropdown options loaded. Showing a default Rick result.", "success");
+    const randomName = chooseRandomName();
+    nameSelect.value = randomName;
+    updateDependentFilters(randomName);
+    setMessage("Dropdown options loaded. Showing a random character.", "success");
     searchForm.requestSubmit();
   } catch (error) {
     setMessage(error.message, "error");
     populateSelect(nameSelect, [], "Unable to load characters");
     populateSelect(speciesSelect, [], "Unable to load species");
+    statusSelect.disabled = true;
+    speciesSelect.disabled = true;
   } finally {
     toggleLoading(false);
   }
 }
 
 searchForm.addEventListener("submit", handleSearch);
+nameSelect.addEventListener("change", () => {
+  updateDependentFilters(nameSelect.value, statusSelect.value, speciesSelect.value);
+  if (nameSelect.value) {
+    searchForm.requestSubmit();
+  }
+});
+statusSelect.addEventListener("change", () => {
+  if (nameSelect.value) {
+    searchForm.requestSubmit();
+  }
+});
+speciesSelect.addEventListener("change", () => {
+  if (nameSelect.value) {
+    searchForm.requestSubmit();
+  }
+});
 init();

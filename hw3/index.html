@@ -83,11 +83,11 @@
           <section class="detail-panel">
             <div class="detail-header">
               <p class="eyebrow">Character Detail</p>
-              <p class="detail-help">Select any result to update the profile and 3D viewer.</p>
+              <p class="detail-help">Select any result to update the profile.</p>
             </div>
 
             <div id="detail-empty" class="detail-empty">
-              Character image, facts, and 3D showcase will appear here.
+              Character image and facts will appear here.
             </div>
 
             <div id="detail-content" class="detail-content hidden">
@@ -139,39 +139,11 @@
                       <span id="character-id" class="stat-value"></span>
                     </div>
                   </div>
+                  <p class="api-note-inline">
+                    The API does not provide written biographies, so this description is built from
+                    the structured character fields that the API exposes.
+                  </p>
                 </div>
-              </div>
-
-              <div class="viewer-panel">
-                <div class="viewer-header">
-                  <div>
-                    <p class="viewer-title">3D Character Showcase</p>
-                    <p id="viewer-caption" class="viewer-caption"></p>
-                  </div>
-                </div>
-
-                <div class="viewer-frame-shell">
-                  <iframe
-                    id="character-viewer"
-                    class="character-viewer"
-                    title="Rick and Morty 3D viewer"
-                    frameborder="0"
-                    allowfullscreen
-                    mozallowfullscreen="true"
-                    webkitallowfullscreen="true"
-                    allow="autoplay; fullscreen; xr-spatial-tracking"
-                    xr-spatial-tracking
-                    execution-while-out-of-viewport
-                    execution-while-not-rendered
-                    web-share
-                    src="">
-                  </iframe>
-                </div>
-
-                <p class="viewer-note">
-                  The API does not provide written biographies, so the description above is generated
-                  from the structured fields the API exposes.
-                </p>
               </div>
             </div>
           </section>

@@ -85,8 +85,7 @@ body {
 
 h1,
 h2,
-h3,
-.viewer-title {
+h3 {
   margin: 0;
   font-family: "Space Grotesk", sans-serif;
   line-height: 1.05;
@@ -173,8 +172,6 @@ button:disabled {
 .results-summary,
 .status-card,
 .detail-help,
-.viewer-caption,
-.viewer-note,
 .character-tagline,
 .character-meta,
 .character-description {
@@ -214,8 +211,6 @@ button:disabled {
 
 .results-summary,
 .detail-help,
-.viewer-caption,
-.viewer-note,
 .character-description,
 .character-tagline,
 .character-meta {
@@ -282,12 +277,9 @@ button:disabled {
 
 .detail-content {
   padding: 18px 22px 22px;
-  display: grid;
-  gap: 18px;
 }
 
-.detail-card,
-.viewer-panel {
+.detail-card {
   border: 1px solid rgba(167, 255, 79, 0.08);
   border-radius: 24px;
   background: var(--panel-strong);
@@ -311,6 +303,12 @@ button:disabled {
 .detail-copy {
   display: grid;
   gap: 16px;
+}
+
+.api-note-inline {
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.6;
 }
 
 .detail-title-row {
@@ -366,24 +364,6 @@ button:disabled {
 .status-badge.unknown {
   background: rgba(219, 228, 234, 0.12);
   color: #d7e0e6;
-}
-
-.viewer-panel {
-  padding: 18px;
-  display: grid;
-  gap: 16px;
-}
-
-.viewer-frame-shell {
-  overflow: hidden;
-  border-radius: 22px;
-  border: 1px solid rgba(77, 247, 223, 0.16);
-}
-
-.character-viewer {
-  display: block;
-  width: 100%;
-  min-height: 420px;
 }
 
 .site-footer {

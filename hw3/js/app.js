@@ -6,12 +6,17 @@ const formMessage = document.getElementById("form-message");
 const searchButton = document.getElementById("search-button");
 const loadingState = document.getElementById("loading-state");
 const emptyState = document.getElementById("empty-state");
-const resultsGrid = document.getElementById("results-grid");
+const resultsList = document.getElementById("results-list");
 const resultsSummary = document.getElementById("results-summary");
 
 const oneDayMs = 24 * 60 * 60 * 1000;
 const defaultEndDate = new Date();
 const defaultStartDate = new Date(defaultEndDate.getTime() - (14 * oneDayMs));
+
+let map;
+let markerLayer;
+let activeFeatureId = "";
+const featureIndex = new Map();
 
 function formatDateInput(date) {
   return date.toISOString().split("T")[0];
@@ -38,8 +43,34 @@ function toggleLoading(isLoading) {
   searchButton.disabled = isLoading;
 }
 
+function getMagnitudeColor(magnitude) {
+  if (magnitude >= 6) {
+    return "#cb4b16";
+  }
+
+  if (magnitude >= 5) {
+    return "#e97a1f";
+  }
+
+  if (magnitude >= 4) {
+    return "#f59e0b";
+  }
+
+  return "#f5b942";
+}
+
+function getMarkerRadius(magnitude) {
+  return Math.max(6, Math.min(20, (magnitude || 0) * 2.2));
+}
+
 function clearResults() {
-  resultsGrid.innerHTML = "";
+  resultsList.innerHTML = "";
+  featureIndex.clear();
+  activeFeatureId = "";
+
+  if (markerLayer) {
+    markerLayer.clearLayers();
+  }
 }
 
 function validateForm() {
@@ -67,29 +98,103 @@ function validateForm() {
   return "";
 }
 
-function buildCard(feature) {
-  const { mag, place, time, url } = feature.properties;
-  const depth = feature.geometry.coordinates[2];
-  const card = document.createElement("article");
-  card.className = "quake-card";
-  card.innerHTML = `
-    <div class="magnitude-pill">Magnitude ${mag ?? "N/A"}</div>
-    <h3 class="result-location">${place || "Unknown location"}</h3>
-    <p class="result-time">${formatEventTime(time)}</p>
-    <div class="meta-grid">
-      <div class="meta-item">
-        <span class="meta-label">Depth</span>
-        ${typeof depth === "number" ? `${depth.toFixed(1)} km` : "Not available"}
-      </div>
-      <div class="meta-item">
-        <span class="meta-label">Coordinates</span>
-        ${feature.geometry.coordinates[1].toFixed(2)}, ${feature.geometry.coordinates[0].toFixed(2)}
-      </div>
+function buildPopup(feature) {
+  const { mag, place, time } = feature.properties;
+
+  return `
+    <div>
+      <p class="popup-title">M ${mag ?? "N/A"} • ${place || "Unknown location"}</p>
+      <p class="popup-copy">${formatEventTime(time)}</p>
     </div>
-    <a class="result-link" href="${url}" target="_blank" rel="noreferrer">View on USGS</a>
+  `;
+}
+
+function setActiveFeature(featureId, shouldPan = false) {
+  activeFeatureId = featureId;
+
+  featureIndex.forEach(({ item, marker, feature }) => {
+    const isActive = feature.id === featureId;
+    item.classList.toggle("active", isActive);
+
+    marker.setStyle({
+      weight: isActive ? 3 : 1.5,
+      fillOpacity: isActive ? 0.95 : 0.82,
+    });
+
+    if (isActive) {
+      item.scrollIntoView({ block: "nearest", behavior: "smooth" });
+
+      if (shouldPan && map) {
+        const [longitude, latitude] = feature.geometry.coordinates;
+        map.flyTo([latitude, longitude], Math.max(map.getZoom(), 4), {
+          duration: 0.7,
+        });
+      }
+
+      marker.openPopup();
+    }
+  });
+}
+
+function buildListItem(feature) {
+  const [longitude, latitude, depth] = feature.geometry.coordinates;
+  const { mag, place, time, url } = feature.properties;
+  const item = document.createElement("article");
+  item.className = "quake-item";
+  item.tabIndex = 0;
+  item.innerHTML = `
+    <div class="quake-topline">
+      <div>
+        <h3 class="quake-location">${place || "Unknown location"}</h3>
+        <p class="quake-time">${formatEventTime(time)}</p>
+      </div>
+      <div class="magnitude-badge">${mag ?? "N/A"}</div>
+    </div>
+    <div class="quake-meta-row">
+      <span class="quake-meta">Depth ${typeof depth === "number" ? `${depth.toFixed(1)} km` : "N/A"}</span>
+      <span class="quake-meta">Lat ${latitude.toFixed(2)}</span>
+      <span class="quake-meta">Lng ${longitude.toFixed(2)}</span>
+    </div>
+    <a class="quake-link" href="${url}" target="_blank" rel="noreferrer">View USGS event</a>
   `;
 
-  return card;
+  item.addEventListener("click", (event) => {
+    if (event.target.closest("a")) {
+      return;
+    }
+
+    setActiveFeature(feature.id, true);
+  });
+  item.addEventListener("keydown", (event) => {
+    if (event.key === "Enter" || event.key === " ") {
+      event.preventDefault();
+      setActiveFeature(feature.id, true);
+    }
+  });
+
+  return item;
+}
+
+function addFeatureToMap(feature, item) {
+  const [longitude, latitude] = feature.geometry.coordinates;
+  const magnitude = feature.properties.mag || 0;
+
+  const marker = L.circleMarker([latitude, longitude], {
+    radius: getMarkerRadius(magnitude),
+    color: "#ffffff",
+    weight: 1.5,
+    fillColor: getMagnitudeColor(magnitude),
+    fillOpacity: 0.82,
+  });
+
+  marker.bindPopup(buildPopup(feature));
+  marker.addTo(markerLayer);
+
+  marker.on("click", () => {
+    setActiveFeature(feature.id, false);
+  });
+
+  featureIndex.set(feature.id, { feature, item, marker });
 }
 
 function renderResults(features, startDate, endDate, minMagnitude) {
@@ -98,15 +203,35 @@ function renderResults(features, startDate, endDate, minMagnitude) {
   if (!features.length) {
     emptyState.classList.remove("hidden");
     resultsSummary.textContent = `No earthquakes matched ${startDate} to ${endDate} at magnitude ${minMagnitude}+`;
+    if (map) {
+      map.setView([20, 0], 2);
+    }
     return;
   }
 
   emptyState.classList.add("hidden");
   resultsSummary.textContent = `Showing ${features.length} earthquakes from ${startDate} to ${endDate} with magnitude ${minMagnitude}+`;
 
+  const bounds = [];
+
   features.forEach((feature) => {
-    resultsGrid.appendChild(buildCard(feature));
+    const item = buildListItem(feature);
+    resultsList.appendChild(item);
+    addFeatureToMap(feature, item);
+
+    const [longitude, latitude] = feature.geometry.coordinates;
+    bounds.push([latitude, longitude]);
   });
+
+  if (bounds.length === 1) {
+    if (map) {
+      map.setView(bounds[0], 4);
+    }
+  } else if (map) {
+    map.fitBounds(bounds, { padding: [40, 40] });
+  }
+
+  setActiveFeature(features[0].id, false);
 }
 
 async function fetchEarthquakes(startDate, endDate, minMagnitude) {
@@ -115,8 +240,8 @@ async function fetchEarthquakes(startDate, endDate, minMagnitude) {
   endpoint.searchParams.set("starttime", startDate);
   endpoint.searchParams.set("endtime", endDate);
   endpoint.searchParams.set("minmagnitude", String(minMagnitude));
-  endpoint.searchParams.set("orderby", "magnitude");
-  endpoint.searchParams.set("limit", "12");
+  endpoint.searchParams.set("orderby", "time");
+  endpoint.searchParams.set("limit", "30");
 
   const response = await fetch(endpoint);
   if (!response.ok) {
@@ -153,9 +278,31 @@ async function handleSearch(event) {
     emptyState.classList.remove("hidden");
     resultsSummary.textContent = "Unable to load earthquake data right now.";
     setMessage(error.message, "error");
+    if (map) {
+      map.setView([20, 0], 2);
+    }
   } finally {
     toggleLoading(false);
   }
+}
+
+function initMap() {
+  if (typeof L === "undefined") {
+    resultsSummary.textContent = "Map library could not be loaded.";
+    setMessage("The map could not be initialized. Check your internet connection.", "error");
+    return;
+  }
+
+  map = L.map("map", {
+    worldCopyJump: true,
+    minZoom: 2,
+  }).setView([20, 0], 2);
+
+  L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+  }).addTo(map);
+
+  markerLayer = L.layerGroup().addTo(map);
 }
 
 function initDefaults() {
@@ -163,5 +310,6 @@ function initDefaults() {
   startDateInput.value = formatDateInput(defaultStartDate);
 }
 
+initMap();
 initDefaults();
 searchForm.addEventListener("submit", handleSearch);

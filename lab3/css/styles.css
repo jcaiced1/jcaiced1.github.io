@@ -268,7 +268,7 @@ input[readonly] {
 }
 
 .signature-block {
-  width: min(680px, calc(100% - 2rem));
+  width: min(100%, 680px);
   text-align: center;
   color: rgba(245, 248, 252, 0.9);
   margin-left: auto;

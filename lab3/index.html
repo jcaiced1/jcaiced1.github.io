@@ -3,10 +3,10 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Lab 3 | Sign Up Page</title>
+  <title>Lab 3 | Login</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Bitcount+Grid+Double+Ink:wght@100..900&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/styles.css">
 </head>
 <body>
@@ -18,7 +18,7 @@
   <main class="page-shell">
     <section class="hero-stage">
       <section class="card form-card">
-        <button class="panel-close" type="button" aria-label="Decorative close button">×</button>
+        <span class="panel-close" aria-hidden="true">×</span>
 
         <div class="section-heading">
           <p class="eyebrow">Student Registration</p>
@@ -28,12 +28,12 @@
 
         <form id="signup-form" novalidate>
           <div class="form-grid">
-            <label>
+            <label class="field-half">
               <span>First Name</span>
               <input type="text" id="firstName" name="firstName" placeholder="Jane" required>
             </label>
 
-            <label>
+            <label class="field-half">
               <span>Last Name</span>
               <input type="text" id="lastName" name="lastName" placeholder="Doe" required>
             </label>
@@ -43,35 +43,35 @@
               <input type="email" id="email" name="email" placeholder="student@example.edu" required>
             </label>
 
-            <label>
+            <label class="field-quarter">
               <span>Zip Code</span>
               <input type="text" id="zip" name="zip" maxlength="5" inputmode="numeric" placeholder="93955" required>
               <small id="zip-message" class="helper-text"></small>
             </label>
 
-            <label>
+            <label class="field-quarter">
               <span>City</span>
               <input type="text" id="city" name="city" readonly>
             </label>
 
-            <label>
+            <label class="field-quarter">
               <span>Latitude</span>
               <input type="text" id="latitude" name="latitude" readonly>
             </label>
 
-            <label>
+            <label class="field-quarter">
               <span>Longitude</span>
               <input type="text" id="longitude" name="longitude" readonly>
             </label>
 
-            <label>
+            <label class="field-half">
               <span>State</span>
               <select id="state" name="state" required>
                 <option value="">Loading states...</option>
               </select>
             </label>
 
-            <label>
+            <label class="field-half">
               <span>County</span>
               <select id="county" name="county" required>
                 <option value="">Select a state first</option>
@@ -84,13 +84,13 @@
               <small id="username-message" class="helper-text"></small>
             </label>
 
-            <label>
+            <label class="field-half">
               <span>Password</span>
               <input type="password" id="password" name="password" minlength="6" required>
               <small id="password-suggestion" class="helper-text"></small>
             </label>
 
-            <label>
+            <label class="field-half">
               <span>Retype Password</span>
               <input type="password" id="passwordConfirm" name="passwordConfirm" minlength="6" required>
               <small id="password-message" class="helper-text"></small>
@@ -103,6 +103,13 @@
         </form>
 
         <p class="register-note">Need another try? Submit to continue to the welcome page.</p>
+      </section>
+
+      <section class="signature-block" aria-label="Student credits">
+        <p class="signature-name">Jose Caicedo</p>
+        <p class="signature-meta">CST336 Internet Programming</p>
+        <p class="signature-meta">2026</p>
+        <img class="signature-logo" src="img/csumb-logo.png" alt="CSUMB logo">
       </section>
     </section>
   </main>

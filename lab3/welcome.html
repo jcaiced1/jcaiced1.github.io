@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Welcome</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+  <main class="page-shell center-screen">
+    <section class="card welcome-card">
+      <p class="eyebrow">Registration Complete</p>
+      <h1 id="welcome-title">Welcome!</h1>
+      <p id="welcome-copy" class="lede">Your account was created successfully.</p>
+      <a href="index.html" class="submit-btn secondary-btn">Create another account</a>
+    </section>
+  </main>
+
+  <script>
+    const params = new URLSearchParams(window.location.search);
+    const username = params.get('username') || 'student';
+    document.getElementById('welcome-title').textContent = `Welcome, ${username}!`;
+    document.getElementById('welcome-copy').textContent = `Your sign up information was validated successfully and your account is ready.`;
+  </script>
+</body>
+</html>

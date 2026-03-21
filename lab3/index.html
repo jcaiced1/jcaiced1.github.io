@@ -10,102 +10,122 @@
   <link rel="stylesheet" href="css/styles.css">
 </head>
 <body>
-  <main class="page-shell">
-    <section class="card hero-card">
-      <div class="hero-copy">
+  <video class="background-video" autoplay muted loop playsinline aria-hidden="true">
+    <source src="assets/video/hero-background.mp4" type="video/mp4">
+  </video>
+  <div class="page-overlay" aria-hidden="true"></div>
+
+  <header class="site-header">
+    <div class="brand-mark">Logo</div>
+    <nav class="main-nav" aria-label="Primary">
+      <a href="#home">Home</a>
+      <a href="#about">About</a>
+      <a href="#services">Services</a>
+      <a href="#contact">Contact</a>
+    </nav>
+    <a href="#signup-form" class="login-chip">Login</a>
+  </header>
+
+  <main class="page-shell" id="home">
+    <section class="hero-stage">
+      <article class="hero-copy card" id="about">
         <p class="eyebrow">CST 336 · Lab 3</p>
-        <h1>Create your account</h1>
-        <p class="lede">A polished sign up page with validation, state/county lookup, zip code details, username availability, and password guidance.</p>
+        <h1>Night-sky sign up experience</h1>
+        <p class="lede">This version keeps the required API-driven validation, but the layout now follows the cinematic login aesthetic from your reference image.</p>
         <ul class="feature-list">
-          <li>ZIP code fills in city, latitude, and longitude</li>
+          <li>ZIP code loads city, latitude, and longitude</li>
           <li>States and counties update dynamically</li>
-          <li>Username and password get instant feedback</li>
+          <li>Username and password feedback appears live</li>
         </ul>
-      </div>
-      <div class="hero-badge">Web APIs</div>
-    </section>
+      </article>
 
-    <section class="card form-card">
-      <div class="section-heading">
-        <p class="eyebrow">Student Registration</p>
-        <h2>Sign up form</h2>
-      </div>
+      <section class="card form-card" id="services">
+        <button class="panel-close" type="button" aria-label="Decorative close button">×</button>
 
-      <form id="signup-form" novalidate>
-        <div class="form-grid">
-          <label>
-            <span>First Name</span>
-            <input type="text" id="firstName" name="firstName" placeholder="Jane" required>
-          </label>
-
-          <label>
-            <span>Last Name</span>
-            <input type="text" id="lastName" name="lastName" placeholder="Doe" required>
-          </label>
-
-          <label class="full-width">
-            <span>Email</span>
-            <input type="email" id="email" name="email" placeholder="student@example.edu" required>
-          </label>
-
-          <label>
-            <span>Zip Code</span>
-            <input type="text" id="zip" name="zip" maxlength="5" inputmode="numeric" placeholder="93955" required>
-            <small id="zip-message" class="helper-text"></small>
-          </label>
-
-          <label>
-            <span>City</span>
-            <input type="text" id="city" name="city" readonly>
-          </label>
-
-          <label>
-            <span>Latitude</span>
-            <input type="text" id="latitude" name="latitude" readonly>
-          </label>
-
-          <label>
-            <span>Longitude</span>
-            <input type="text" id="longitude" name="longitude" readonly>
-          </label>
-
-          <label>
-            <span>State</span>
-            <select id="state" name="state" required>
-              <option value="">Loading states...</option>
-            </select>
-          </label>
-
-          <label>
-            <span>County</span>
-            <select id="county" name="county" required>
-              <option value="">Select a state first</option>
-            </select>
-          </label>
-
-          <label class="full-width">
-            <span>Desired Username</span>
-            <input type="text" id="username" name="username" placeholder="jdoe2026" required>
-            <small id="username-message" class="helper-text"></small>
-          </label>
-
-          <label>
-            <span>Password</span>
-            <input type="password" id="password" name="password" minlength="6" required>
-            <small id="password-suggestion" class="helper-text"></small>
-          </label>
-
-          <label>
-            <span>Retype Password</span>
-            <input type="password" id="passwordConfirm" name="passwordConfirm" minlength="6" required>
-            <small id="password-message" class="helper-text"></small>
-          </label>
+        <div class="section-heading">
+          <p class="eyebrow">Student Registration</p>
+          <h2>Login</h2>
+          <p class="panel-copy">Create your account inside the glass panel.</p>
         </div>
 
-        <div id="form-message" class="form-message" aria-live="polite"></div>
+        <form id="signup-form" novalidate>
+          <div class="form-grid">
+            <label>
+              <span>First Name</span>
+              <input type="text" id="firstName" name="firstName" placeholder="Jane" required>
+            </label>
 
-        <button type="submit" class="submit-btn">Submit</button>
-      </form>
+            <label>
+              <span>Last Name</span>
+              <input type="text" id="lastName" name="lastName" placeholder="Doe" required>
+            </label>
+
+            <label class="full-width">
+              <span>Email</span>
+              <input type="email" id="email" name="email" placeholder="student@example.edu" required>
+            </label>
+
+            <label>
+              <span>Zip Code</span>
+              <input type="text" id="zip" name="zip" maxlength="5" inputmode="numeric" placeholder="93955" required>
+              <small id="zip-message" class="helper-text"></small>
+            </label>
+
+            <label>
+              <span>City</span>
+              <input type="text" id="city" name="city" readonly>
+            </label>
+
+            <label>
+              <span>Latitude</span>
+              <input type="text" id="latitude" name="latitude" readonly>
+            </label>
+
+            <label>
+              <span>Longitude</span>
+              <input type="text" id="longitude" name="longitude" readonly>
+            </label>
+
+            <label>
+              <span>State</span>
+              <select id="state" name="state" required>
+                <option value="">Loading states...</option>
+              </select>
+            </label>
+
+            <label>
+              <span>County</span>
+              <select id="county" name="county" required>
+                <option value="">Select a state first</option>
+              </select>
+            </label>
+
+            <label class="full-width">
+              <span>Desired Username</span>
+              <input type="text" id="username" name="username" placeholder="jdoe2026" required>
+              <small id="username-message" class="helper-text"></small>
+            </label>
+
+            <label>
+              <span>Password</span>
+              <input type="password" id="password" name="password" minlength="6" required>
+              <small id="password-suggestion" class="helper-text"></small>
+            </label>
+
+            <label>
+              <span>Retype Password</span>
+              <input type="password" id="passwordConfirm" name="passwordConfirm" minlength="6" required>
+              <small id="password-message" class="helper-text"></small>
+            </label>
+          </div>
+
+          <div id="form-message" class="form-message" aria-live="polite"></div>
+
+          <button type="submit" class="submit-btn">Login</button>
+        </form>
+
+        <p class="register-note" id="contact">Need another try? Submit to continue to the welcome page.</p>
+      </section>
     </section>
   </main>
 

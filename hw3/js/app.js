@@ -23,6 +23,7 @@ const characterEpisodes = document.getElementById("character-episodes");
 const characterType = document.getElementById("character-type");
 const characterCreated = document.getElementById("character-created");
 const characterId = document.getElementById("character-id");
+const fallbackPortrait = "img/Rick_and_Morty_-_logo_%28English%29-2.webp";
 
 let currentCharacters = [];
 const nameFilters = new Map();
@@ -141,14 +142,30 @@ async function fetchCatalog() {
   const pageRequests = [];
 
   for (let page = 2; page <= pages; page += 1) {
-    pageRequests.push(fetch(`https://rickandmortyapi.com/api/character/?page=${page}`).then((response) => response.json()));
+    pageRequests.push(
+      fetch(`https://rickandmortyapi.com/api/character/?page=${page}`)
+        .then((response) => {
+          if (!response.ok) {
+            throw new Error(`Page ${page} failed with status ${response.status}.`);
+          }
+
+          return response.json();
+        })
+    );
   }
 
-  const remainingPages = await Promise.all(pageRequests);
+  const settledPages = await Promise.allSettled(pageRequests);
+  const remainingPages = settledPages
+    .filter((result) => result.status === "fulfilled")
+    .map((result) => result.value);
   const characters = [
     ...firstPage.results,
     ...remainingPages.flatMap((page) => page.results || []),
   ];
+
+  if (!characters.length) {
+    throw new Error("Character catalog could not be loaded.");
+  }
 
   const names = [...new Set(characters.map((character) => character.name))].sort((left, right) => {
     return left.localeCompare(right);
@@ -207,6 +224,11 @@ function renderCharacterDetail(character) {
 
   characterImage.src = character.image;
   characterImage.alt = `${character.name} portrait`;
+  characterImage.onerror = () => {
+    characterImage.onerror = null;
+    characterImage.src = fallbackPortrait;
+    characterImage.alt = `${character.name} fallback portrait`;
+  };
   detailName.textContent = character.name;
   characterTagline.textContent = `${character.status} ${character.species}${character.type ? ` • ${character.type}` : ""}`;
   characterDescription.textContent = buildDescription(character);
@@ -230,10 +252,19 @@ function buildCharacterItem(character) {
   item.innerHTML = `
     <img class="character-thumb" src="${character.image}" alt="${character.name}">
     <div>
+      <p class="character-stamp">Variant #${character.id}</p>
       <h3 class="character-item-name">${character.name}</h3>
       <p class="character-meta">${character.status} • ${character.species} • ${character.gender}</p>
+      <p class="character-origin-line">${character.origin?.name || "Unknown origin"}</p>
     </div>
   `;
+
+  const thumb = item.querySelector(".character-thumb");
+  thumb.onerror = () => {
+    thumb.onerror = null;
+    thumb.src = fallbackPortrait;
+    thumb.alt = `${character.name} fallback portrait`;
+  };
 
   const activate = () => {
     setActiveCharacter(character.id);
@@ -328,7 +359,7 @@ async function init() {
     const randomName = chooseRandomName();
     nameSelect.value = randomName;
     updateDependentFilters(randomName);
-    setMessage("Dropdown options loaded. Showing a random character.", "success");
+    setMessage("Character archive loaded. Showing a random character.", "success");
     searchForm.requestSubmit();
   } catch (error) {
     setMessage(error.message, "error");

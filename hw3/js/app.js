@@ -1,7 +1,7 @@
 const searchForm = document.getElementById("search-form");
-const nameInput = document.getElementById("name-input");
+const nameSelect = document.getElementById("name-select");
 const statusSelect = document.getElementById("status-select");
-const speciesInput = document.getElementById("species-input");
+const speciesSelect = document.getElementById("species-select");
 const searchButton = document.getElementById("search-button");
 const formMessage = document.getElementById("form-message");
 const loadingState = document.getElementById("loading-state");
@@ -13,12 +13,15 @@ const detailContent = document.getElementById("detail-content");
 const characterImage = document.getElementById("character-image");
 const detailName = document.getElementById("character-name");
 const characterTagline = document.getElementById("character-tagline");
+const characterDescription = document.getElementById("character-description");
 const statusBadge = document.getElementById("status-badge");
 const characterSpecies = document.getElementById("character-species");
 const characterGender = document.getElementById("character-gender");
 const characterOrigin = document.getElementById("character-origin");
 const characterLocation = document.getElementById("character-location");
 const characterEpisodes = document.getElementById("character-episodes");
+const characterType = document.getElementById("character-type");
+const characterCreated = document.getElementById("character-created");
 const characterId = document.getElementById("character-id");
 const characterViewer = document.getElementById("character-viewer");
 const viewerCaption = document.getElementById("viewer-caption");
@@ -56,37 +59,11 @@ function clearResults() {
 }
 
 function validateForm() {
-  const trimmedName = nameInput.value.trim();
-  const trimmedSpecies = speciesInput.value.trim();
-
-  if (!trimmedName) {
-    return "Please enter a character name.";
-  }
-
-  if (trimmedName.length < 2) {
-    return "Character name must contain at least 2 characters.";
-  }
-
-  if (trimmedSpecies && trimmedSpecies.length < 2) {
-    return "Species must be at least 2 characters when provided.";
+  if (!nameSelect.value) {
+    return "Please choose a character from the dropdown.";
   }
 
   return "";
-}
-
-function buildQueryUrl() {
-  const endpoint = new URL("https://rickandmortyapi.com/api/character/");
-  endpoint.searchParams.set("name", nameInput.value.trim());
-
-  if (statusSelect.value) {
-    endpoint.searchParams.set("status", statusSelect.value);
-  }
-
-  if (speciesInput.value.trim()) {
-    endpoint.searchParams.set("species", speciesInput.value.trim());
-  }
-
-  return endpoint;
 }
 
 function getStatusClass(status) {
@@ -111,6 +88,64 @@ function getViewerForCharacter(character) {
   }
 
   return embeds.rick;
+}
+
+function formatCreatedDate(value) {
+  return new Date(value).toLocaleDateString("en-US", {
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+  });
+}
+
+function buildDescription(character) {
+  const typeText = character.type ? ` with the subtype ${character.type}` : "";
+  return `${character.name} is a ${character.status.toLowerCase()} ${character.species.toLowerCase()}${typeText}. The API shows this character comes from ${character.origin.name}, was last seen in ${character.location.name}, and appears in ${character.episode.length} episode${character.episode.length === 1 ? "" : "s"}.`;
+}
+
+function populateSelect(select, values, placeholder, selectedValue = "") {
+  select.innerHTML = `<option value="">${placeholder}</option>`;
+
+  values.forEach((value) => {
+    const option = document.createElement("option");
+    option.value = value;
+    option.textContent = value;
+    if (value === selectedValue) {
+      option.selected = true;
+    }
+    select.appendChild(option);
+  });
+}
+
+async function fetchCatalog() {
+  const firstResponse = await fetch("https://rickandmortyapi.com/api/character/");
+  if (!firstResponse.ok) {
+    throw new Error(`Catalog request failed with status ${firstResponse.status}.`);
+  }
+
+  const firstPage = await firstResponse.json();
+  const pages = firstPage.info.pages;
+  const pageRequests = [];
+
+  for (let page = 2; page <= pages; page += 1) {
+    pageRequests.push(fetch(`https://rickandmortyapi.com/api/character/?page=${page}`).then((response) => response.json()));
+  }
+
+  const remainingPages = await Promise.all(pageRequests);
+  const characters = [
+    ...firstPage.results,
+    ...remainingPages.flatMap((page) => page.results || []),
+  ];
+
+  const names = [...new Set(characters.map((character) => character.name))].sort((left, right) => {
+    return left.localeCompare(right);
+  });
+  const species = [...new Set(characters.map((character) => character.species).filter(Boolean))].sort((left, right) => {
+    return left.localeCompare(right);
+  });
+
+  populateSelect(nameSelect, names, "Select a character", "Rick Sanchez");
+  populateSelect(speciesSelect, species, "Any species");
 }
 
 function setActiveCharacter(characterIdValue) {
@@ -140,6 +175,7 @@ function renderCharacterDetail(character) {
   characterImage.alt = `${character.name} portrait`;
   detailName.textContent = character.name;
   characterTagline.textContent = `${character.status} ${character.species}${character.type ? ` • ${character.type}` : ""}`;
+  characterDescription.textContent = buildDescription(character);
   statusBadge.textContent = character.status;
   statusBadge.className = `status-badge ${getStatusClass(character.status)}`;
   characterSpecies.textContent = character.species || "Unknown";
@@ -147,6 +183,8 @@ function renderCharacterDetail(character) {
   characterOrigin.textContent = character.origin?.name || "Unknown";
   characterLocation.textContent = character.location?.name || "Unknown";
   characterEpisodes.textContent = String(character.episode.length);
+  characterType.textContent = character.type || "No subtype listed";
+  characterCreated.textContent = formatCreatedDate(character.created);
   characterId.textContent = String(character.id);
   characterViewer.src = viewer.src;
   viewerCaption.textContent = viewer.caption;
@@ -203,7 +241,18 @@ function renderResults(characters) {
 }
 
 async function fetchCharacters() {
-  const response = await fetch(buildQueryUrl());
+  const endpoint = new URL("https://rickandmortyapi.com/api/character/");
+  endpoint.searchParams.set("name", nameSelect.value);
+
+  if (statusSelect.value) {
+    endpoint.searchParams.set("status", statusSelect.value);
+  }
+
+  if (speciesSelect.value) {
+    endpoint.searchParams.set("species", speciesSelect.value);
+  }
+
+  const response = await fetch(endpoint);
 
   if (response.status === 404) {
     return { results: [] };
@@ -246,12 +295,22 @@ async function handleSearch(event) {
   }
 }
 
-function initDefaults() {
-  nameInput.value = "rick";
-  speciesInput.value = "";
-  statusSelect.value = "";
+async function init() {
+  toggleLoading(true);
+  setMessage("Loading available character and species options...", "success");
+
+  try {
+    await fetchCatalog();
+    setMessage("Dropdown options loaded. Showing a default Rick result.", "success");
+    searchForm.requestSubmit();
+  } catch (error) {
+    setMessage(error.message, "error");
+    populateSelect(nameSelect, [], "Unable to load characters");
+    populateSelect(speciesSelect, [], "Unable to load species");
+  } finally {
+    toggleLoading(false);
+  }
 }
 
-initDefaults();
 searchForm.addEventListener("submit", handleSearch);
-searchForm.requestSubmit();
+init();

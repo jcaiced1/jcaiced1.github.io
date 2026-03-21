@@ -25,8 +25,8 @@ const characterCreated = document.getElementById("character-created");
 const characterId = document.getElementById("character-id");
 
 let currentCharacters = [];
-let catalogCharacters = [];
 const nameFilters = new Map();
+const charactersByName = new Map();
 
 function setMessage(message, type = "") {
   formMessage.textContent = message;
@@ -78,12 +78,11 @@ function formatCreatedDate(value) {
 }
 
 function buildDescription(character) {
+  const status = character.status.toLowerCase();
+  const species = character.species.toLowerCase();
   const typeText = character.type ? ` with the subtype ${character.type}` : "";
-  return `${character.name} is a ${character.status.toLowerCase()} ${character.species.toLowerCase()}${typeText}. The API shows this character comes from ${character.origin.name}, was last seen in ${character.location.name}, and appears in ${character.episode.length} episode${character.episode.length === 1 ? "" : "s"}.`;
-}
-
-function formatLabel(value) {
-  return value.charAt(0).toUpperCase() + value.slice(1);
+  const statusText = status === "alive" ? "is alive" : status === "dead" ? "is dead" : "has an unknown status";
+  return `${character.name} ${statusText} and is a ${species}${typeText}. ${character.name} comes from ${character.origin.name}, was last seen in ${character.location.name}, and appears in ${character.episode.length} episode${character.episode.length === 1 ? "" : "s"}.`;
 }
 
 function populateSelect(select, values, placeholder, selectedValue = "") {
@@ -106,7 +105,7 @@ function populateConstrainedSelect(select, values, fallbackLabel, preferredValue
   if (values.length === 1) {
     const option = document.createElement("option");
     option.value = values[0];
-    option.textContent = formatLabel(values[0]);
+    option.textContent = values[0];
     option.selected = true;
     select.appendChild(option);
     select.disabled = true;
@@ -121,7 +120,7 @@ function populateConstrainedSelect(select, values, fallbackLabel, preferredValue
   values.forEach((value) => {
     const option = document.createElement("option");
     option.value = value;
-    option.textContent = formatLabel(value);
+    option.textContent = value;
     if (value === preferredValue) {
       option.selected = true;
     }
@@ -150,7 +149,6 @@ async function fetchCatalog() {
     ...firstPage.results,
     ...remainingPages.flatMap((page) => page.results || []),
   ];
-  catalogCharacters = characters;
 
   const names = [...new Set(characters.map((character) => character.name))].sort((left, right) => {
     return left.localeCompare(right);
@@ -158,9 +156,14 @@ async function fetchCatalog() {
 
   names.forEach((name) => {
     const matchingCharacters = characters.filter((character) => character.name === name);
-    const statuses = [...new Set(matchingCharacters.map((character) => character.status.toLowerCase()))].sort();
-    const species = [...new Set(matchingCharacters.map((character) => character.species.toLowerCase()))].sort();
+    const statuses = [...new Set(matchingCharacters.map((character) => character.status))].sort((left, right) => {
+      return left.localeCompare(right);
+    });
+    const species = [...new Set(matchingCharacters.map((character) => character.species).filter(Boolean))].sort((left, right) => {
+      return left.localeCompare(right);
+    });
     nameFilters.set(name, { statuses, species });
+    charactersByName.set(name, matchingCharacters);
   });
 
   populateSelect(nameSelect, names, "Select a character");
@@ -269,29 +272,16 @@ function renderResults(characters) {
   setActiveCharacter(characters[0].id);
 }
 
-async function fetchCharacters() {
-  const endpoint = new URL("https://rickandmortyapi.com/api/character/");
-  endpoint.searchParams.set("name", nameSelect.value);
+function fetchCharacters() {
+  const selectedCharacters = charactersByName.get(nameSelect.value) || [];
 
-  if (statusSelect.value) {
-    endpoint.searchParams.set("status", statusSelect.value);
-  }
+  const filteredMatches = selectedCharacters.filter((character) => {
+    const statusMatches = !statusSelect.value || character.status === statusSelect.value;
+    const speciesMatches = !speciesSelect.value || character.species === speciesSelect.value;
+    return statusMatches && speciesMatches;
+  });
 
-  if (speciesSelect.value) {
-    endpoint.searchParams.set("species", speciesSelect.value);
-  }
-
-  const response = await fetch(endpoint);
-
-  if (response.status === 404) {
-    return { results: [] };
-  }
-
-  if (!response.ok) {
-    throw new Error(`Rick and Morty API request failed with status ${response.status}.`);
-  }
-
-  return response.json();
+  return { results: filteredMatches };
 }
 
 async function handleSearch(event) {

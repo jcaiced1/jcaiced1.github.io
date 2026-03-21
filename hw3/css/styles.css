@@ -1,10 +1,10 @@
 :root {
-  --panel: rgba(7, 18, 28, 0.82);
-  --panel-strong: rgba(8, 22, 34, 0.94);
-  --panel-soft: rgba(228, 255, 241, 0.06);
+  --panel: rgba(7, 18, 28, 0.78);
+  --panel-strong: rgba(8, 22, 34, 0.93);
+  --panel-soft: rgba(228, 255, 241, 0.05);
   --border: rgba(160, 255, 190, 0.14);
   --text: #ebfff3;
-  --muted: #b3c9be;
+  --muted: #aabdb3;
   --acid: #a7ff4f;
   --portal: #4df7df;
   --danger: #ff6b7d;
@@ -23,6 +23,13 @@ body {
   font-family: "Manrope", sans-serif;
   color: var(--text);
   background: #061017;
+  cursor: auto;
+}
+
+button,
+select,
+.character-item {
+  cursor: url("../img/Rick and Morty Pickle Rick Animated--cursor--SweezyCursors..ani"), pointer;
 }
 
 .background-video,
@@ -43,7 +50,7 @@ body {
   background:
     radial-gradient(circle at 12% 12%, rgba(77, 247, 223, 0.18), transparent 22%),
     radial-gradient(circle at 86% 10%, rgba(167, 255, 79, 0.16), transparent 22%),
-    linear-gradient(180deg, rgba(3, 10, 16, 0.7) 0%, rgba(4, 12, 18, 0.84) 100%);
+    linear-gradient(180deg, rgba(3, 10, 16, 0.7) 0%, rgba(4, 12, 18, 0.88) 100%);
   backdrop-filter: blur(4px);
 }
 
@@ -67,11 +74,74 @@ body {
   border-radius: var(--radius-lg);
   background: var(--panel);
   box-shadow: var(--shadow);
-  backdrop-filter: blur(16px);
+  backdrop-filter: blur(18px);
 }
 
 .hero {
-  padding: 26px 30px;
+  position: relative;
+  overflow: hidden;
+  padding: 28px 30px 34px;
+  background:
+    radial-gradient(circle at 80% 28%, rgba(77, 247, 223, 0.12), transparent 18%),
+    linear-gradient(120deg, rgba(7, 18, 28, 0.94) 0%, rgba(7, 25, 33, 0.88) 52%, rgba(14, 46, 43, 0.92) 100%);
+}
+
+.hero::before {
+  content: "";
+  position: absolute;
+  left: 32px;
+  bottom: 18px;
+  width: 160px;
+  height: 2px;
+  background: linear-gradient(90deg, rgba(167, 255, 79, 0.92) 0%, transparent 100%);
+}
+
+.hero::after {
+  content: "";
+  position: absolute;
+  right: -70px;
+  top: -48px;
+  width: 230px;
+  height: 230px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(77, 247, 223, 0.18) 0%, rgba(77, 247, 223, 0.03) 48%, transparent 74%);
+  filter: blur(8px);
+}
+
+.hero-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 280px;
+  gap: 24px;
+  align-items: end;
+}
+
+.hero-copy-block {
+  max-width: 12ch;
+}
+
+.hero-aside {
+  justify-self: end;
+  display: grid;
+  gap: 10px;
+  align-content: start;
+  padding: 18px;
+  border-radius: 20px;
+  border: 1px solid rgba(77, 247, 223, 0.14);
+  background: linear-gradient(180deg, rgba(77, 247, 223, 0.06) 0%, rgba(167, 255, 79, 0.03) 100%);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+}
+
+.hero-stamp {
+  margin: 0;
+  font: 800 1rem "Space Grotesk", sans-serif;
+  color: var(--acid);
+}
+
+.hero-code {
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.6;
+  font-size: 0.92rem;
 }
 
 .eyebrow {
@@ -92,7 +162,9 @@ h3 {
 }
 
 h1 {
-  font-size: clamp(2.5rem, 5vw, 4.8rem);
+  font-size: clamp(2.7rem, 6vw, 5.2rem);
+  letter-spacing: -0.05em;
+  text-shadow: 0 6px 24px rgba(0, 0, 0, 0.28);
 }
 
 h2 {
@@ -100,7 +172,18 @@ h2 {
 }
 
 .search-panel {
+  position: relative;
+  overflow: hidden;
   padding: 22px 24px;
+  transform: translateX(-16px);
+}
+
+.search-panel::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, transparent 0%, rgba(77, 247, 223, 0.03) 50%, transparent 100%);
+  pointer-events: none;
 }
 
 .field-grid {
@@ -153,7 +236,6 @@ button {
   font: 800 1rem "Space Grotesk", sans-serif;
   color: #07131a;
   background: linear-gradient(135deg, var(--acid) 0%, var(--portal) 100%);
-  cursor: pointer;
   transition: transform 0.2s ease, box-shadow 0.2s ease;
   box-shadow: 0 16px 30px rgba(77, 247, 223, 0.22);
 }
@@ -193,15 +275,19 @@ button:disabled {
 
 .dashboard {
   display: grid;
-  grid-template-columns: 360px minmax(0, 1fr);
-  gap: 20px;
+  grid-template-columns: 320px minmax(0, 1fr);
+  gap: 22px;
   min-height: 780px;
+  align-items: start;
 }
 
 .results-sidebar {
   display: grid;
   grid-template-rows: auto auto auto 1fr;
   overflow: hidden;
+  transform: translateY(24px);
+  background:
+    linear-gradient(180deg, rgba(7, 18, 28, 0.94) 0%, rgba(8, 22, 34, 0.86) 100%);
 }
 
 .sidebar-header,
@@ -238,23 +324,41 @@ button:disabled {
   display: grid;
   align-content: start;
   gap: 12px;
+  scrollbar-width: thin;
 }
 
 .character-item {
   display: grid;
-  grid-template-columns: 72px minmax(0, 1fr);
+  grid-template-columns: 86px minmax(0, 1fr);
   gap: 14px;
+  min-height: 110px;
   padding: 14px;
   border: 1px solid rgba(167, 255, 79, 0.08);
   border-radius: 20px;
   background: linear-gradient(180deg, rgba(10, 28, 38, 0.96) 0%, rgba(8, 20, 31, 0.9) 100%);
-  cursor: pointer;
   transition: transform 0.18s ease, border-color 0.18s ease, box-shadow 0.18s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.character-item::after {
+  content: "";
+  position: absolute;
+  inset: auto -20% -45% auto;
+  width: 130px;
+  height: 130px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(167, 255, 79, 0.16) 0%, transparent 70%);
+  pointer-events: none;
+}
+
+.character-item:nth-child(2n) {
+  transform: translateX(10px);
 }
 
 .character-item:hover,
 .character-item.active {
-  transform: translateY(-1px);
+  transform: translateY(-2px) rotate(-0.3deg);
   border-color: rgba(77, 247, 223, 0.4);
   box-shadow: 0 12px 30px rgba(0, 0, 0, 0.22);
 }
@@ -265,14 +369,21 @@ button:disabled {
 }
 
 .character-thumb {
-  width: 72px;
-  height: 72px;
-  border-radius: 18px;
+  width: 86px;
+  height: 86px;
+  border-radius: 20px;
   object-fit: cover;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.character-item-name {
+  font-size: 1.08rem;
+  line-height: 1.06;
 }
 
 .detail-panel {
   overflow: hidden;
+  position: relative;
 }
 
 .detail-content {
@@ -280,24 +391,24 @@ button:disabled {
 }
 
 .detail-card {
+  display: grid;
+  grid-template-columns: 290px minmax(0, 1fr);
+  gap: 22px;
+  padding: 22px;
   border: 1px solid rgba(167, 255, 79, 0.08);
   border-radius: 24px;
-  background: var(--panel-strong);
-}
-
-.detail-card {
-  display: grid;
-  grid-template-columns: 250px minmax(0, 1fr);
-  gap: 20px;
-  padding: 20px;
+  background:
+    linear-gradient(160deg, rgba(8, 22, 34, 0.97) 0%, rgba(8, 22, 34, 0.92) 52%, rgba(13, 42, 43, 0.88) 100%);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03);
 }
 
 .character-image {
   width: 100%;
-  min-height: 340px;
+  min-height: 360px;
   height: 100%;
   object-fit: cover;
   border-radius: 22px;
+  box-shadow: 0 18px 38px rgba(0, 0, 0, 0.26);
 }
 
 .detail-copy {
@@ -305,10 +416,17 @@ button:disabled {
   gap: 16px;
 }
 
-.api-note-inline {
-  margin: 0;
-  color: var(--muted);
-  line-height: 1.6;
+.detail-overline {
+  display: inline-flex;
+  width: fit-content;
+  padding: 8px 12px;
+  border-radius: 999px;
+  background: rgba(77, 247, 223, 0.08);
+  color: var(--portal);
+  font-size: 0.8rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
 }
 
 .detail-title-row {
@@ -316,6 +434,16 @@ button:disabled {
   justify-content: space-between;
   gap: 16px;
   align-items: start;
+}
+
+.character-name {
+  font-size: clamp(2rem, 4vw, 3rem);
+  letter-spacing: -0.04em;
+}
+
+.character-description {
+  max-width: 60ch;
+  line-height: 1.7;
 }
 
 .stat-grid {
@@ -330,6 +458,7 @@ button:disabled {
   padding: 14px;
   border-radius: 18px;
   background: var(--panel-soft);
+  border: 1px solid rgba(255, 255, 255, 0.04);
 }
 
 .stat-label {
@@ -374,6 +503,8 @@ button:disabled {
   justify-content: space-between;
   align-items: center;
   gap: 20px;
+  background:
+    linear-gradient(90deg, rgba(7, 18, 28, 0.88) 0%, rgba(8, 22, 34, 0.82) 60%, rgba(13, 42, 43, 0.68) 100%);
 }
 
 .footer-name,
@@ -401,8 +532,27 @@ button:disabled {
 }
 
 @media (max-width: 1100px) {
-  .dashboard {
+  .dashboard,
+  .hero-grid {
     grid-template-columns: 1fr;
+  }
+
+  .results-sidebar,
+  .search-panel {
+    transform: none;
+  }
+
+  .hero-copy-block {
+    max-width: none;
+  }
+
+  .hero-aside {
+    justify-self: start;
+    max-width: 340px;
+  }
+
+  .character-item:nth-child(2n) {
+    transform: none;
   }
 }
 

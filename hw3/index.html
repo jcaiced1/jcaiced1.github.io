@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HW 3: Earthquake Explorer</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=Source+Sans+3:wght@400;600;700&display=swap"
+      rel="stylesheet">
+    <link rel="stylesheet" href="css/styles.css">
+  </head>
+  <body>
+    <div class="page-shell">
+      <main class="layout">
+        <section class="hero">
+          <p class="eyebrow">CST336 Homework 3</p>
+          <h1>Earthquake Explorer</h1>
+          <p class="hero-copy">
+            This page retrieves earthquake data from the USGS Earthquake Catalog Web API based on
+            a user-selected date range and minimum magnitude. It uses JavaScript validation, event
+            listeners, and <code>fetch()</code> to display recent seismic activity in a readable card layout.
+          </p>
+          <div class="api-note">
+            <span>API used:</span>
+            <a href="https://earthquake.usgs.gov/fdsnws/event/1/" target="_blank" rel="noreferrer">
+              USGS Earthquake Catalog API
+            </a>
+          </div>
+        </section>
+
+        <section class="panel">
+          <form id="search-form" novalidate>
+            <div class="field-grid">
+              <label class="field">
+                <span>Start date</span>
+                <input type="date" id="start-date" name="start-date" required>
+              </label>
+
+              <label class="field">
+                <span>End date</span>
+                <input type="date" id="end-date" name="end-date" required>
+              </label>
+
+              <label class="field">
+                <span>Minimum magnitude</span>
+                <input type="number" id="min-magnitude" name="min-magnitude" min="0" max="10" step="0.1" value="4.5" required>
+              </label>
+            </div>
+
+            <div class="controls">
+              <button type="submit" id="search-button">Find Earthquakes</button>
+              <p id="form-message" class="form-message" aria-live="polite"></p>
+            </div>
+          </form>
+        </section>
+
+        <section class="results-panel">
+          <div class="results-header">
+            <div>
+              <p class="eyebrow">Search Results</p>
+              <h2>Recent matches</h2>
+            </div>
+            <p id="results-summary" class="results-summary">Enter a search to load earthquake data.</p>
+          </div>
+
+          <div id="loading-state" class="status-card hidden" aria-live="polite">
+            Loading earthquake data...
+          </div>
+
+          <div id="empty-state" class="status-card">
+            Search for earthquakes to see location, magnitude, depth, and event time.
+          </div>
+
+          <div id="results-grid" class="results-grid" aria-live="polite"></div>
+        </section>
+      </main>
+    </div>
+
+    <script src="js/app.js"></script>
+  </body>
+</html>

@@ -286,6 +286,10 @@ input[readonly] {
 .signature-logo {
   width: 72px;
   margin-top: 0.4rem;
+  padding: 0.42rem 0.7rem;
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.74);
+  backdrop-filter: blur(8px);
   filter: drop-shadow(0 10px 22px rgba(0, 0, 0, 0.28));
 }
 

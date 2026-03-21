@@ -39,6 +39,7 @@ const usernameMessage = document.getElementById('username-message');
 const passwordSuggestion = document.getElementById('password-suggestion');
 const passwordMessage = document.getElementById('password-message');
 const formMessage = document.getElementById('form-message');
+const backgroundVideo = document.querySelector('.background-video');
 
 let usernameAvailable = false;
 let suggestedPasswordLoaded = false;
@@ -241,6 +242,18 @@ function handleSubmit(event) {
   window.location.href = `welcome.html?${params.toString()}`;
 }
 
+function tryPlayBackgroundVideo() {
+  if (!backgroundVideo) return;
+
+  backgroundVideo.muted = true;
+  backgroundVideo.defaultMuted = true;
+
+  const playAttempt = backgroundVideo.play();
+  if (playAttempt && typeof playAttempt.catch === 'function') {
+    playAttempt.catch(() => {});
+  }
+}
+
 zipInput.addEventListener('change', lookupZip);
 stateSelect.addEventListener('change', loadCounties);
 usernameInput.addEventListener('change', checkUsername);
@@ -249,4 +262,14 @@ passwordInput.addEventListener('input', validatePasswords);
 passwordConfirmInput.addEventListener('input', validatePasswords);
 form.addEventListener('submit', handleSubmit);
 
+if (backgroundVideo) {
+  backgroundVideo.addEventListener('loadeddata', tryPlayBackgroundVideo);
+  window.addEventListener('pageshow', tryPlayBackgroundVideo);
+  document.addEventListener('visibilitychange', () => {
+    if (!document.hidden) tryPlayBackgroundVideo();
+  });
+  document.addEventListener('touchstart', tryPlayBackgroundVideo, { passive: true });
+}
+
+tryPlayBackgroundVideo();
 loadStates();

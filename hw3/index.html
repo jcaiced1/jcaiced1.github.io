@@ -3,17 +3,12 @@
   <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>HW 3: Earthquake Explorer</title>
+    <title>HW 3: Rick and Morty Character Lab</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link
-      href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=Source+Sans+3:wght@400;600;700&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=Manrope:wght@400;500;700;800&display=swap"
       rel="stylesheet">
-    <link
-      rel="stylesheet"
-      href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
-      integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
-      crossorigin="">
     <link rel="stylesheet" href="css/styles.css">
   </head>
   <body>
@@ -22,19 +17,19 @@
         <section class="hero">
           <div class="hero-copy-block">
             <p class="eyebrow">CST336 Homework 3</p>
-            <h1>Earthquake Explorer</h1>
+            <h1>Rick and Morty Character Lab</h1>
             <p class="hero-copy">
-              This page retrieves earthquake data from the USGS Earthquake Catalog Web API based on
-              a user-selected date range and minimum magnitude. It uses form validation, an event
-              listener, and <code>fetch()</code> to plot earthquakes on a world map and list them
-              in a user-friendly panel.
+              This page uses the Rick and Morty API to search for characters by name, status, and
+              species. It includes form validation, an event listener, a <code>fetch()</code>
+              request, and a user-friendly layout with a character list, detail panel, and 3D
+              character showcase.
             </p>
           </div>
 
           <div class="api-note">
             <span>API used:</span>
-            <a href="https://earthquake.usgs.gov/fdsnws/event/1/" target="_blank" rel="noreferrer">
-              USGS Earthquake Catalog API
+            <a href="https://rickandmortyapi.com/api/" target="_blank" rel="noreferrer">
+              Rick and Morty API
             </a>
           </div>
         </section>
@@ -43,23 +38,28 @@
           <form id="search-form" novalidate>
             <div class="field-grid">
               <label class="field">
-                <span>Start date</span>
-                <input type="date" id="start-date" name="start-date" required>
+                <span>Character name</span>
+                <input type="text" id="name-input" name="name" minlength="2" maxlength="40" placeholder="Rick, Morty, Summer..." required>
               </label>
 
               <label class="field">
-                <span>End date</span>
-                <input type="date" id="end-date" name="end-date" required>
+                <span>Status</span>
+                <select id="status-select" name="status">
+                  <option value="">Any status</option>
+                  <option value="alive">Alive</option>
+                  <option value="dead">Dead</option>
+                  <option value="unknown">Unknown</option>
+                </select>
               </label>
 
               <label class="field">
-                <span>Minimum magnitude</span>
-                <input type="number" id="min-magnitude" name="min-magnitude" min="0" max="10" step="0.1" value="4.5" required>
+                <span>Species</span>
+                <input type="text" id="species-input" name="species" maxlength="30" placeholder="Human, Alien, Robot...">
               </label>
             </div>
 
             <div class="controls">
-              <button type="submit" id="search-button">Load Earthquakes</button>
+              <button type="submit" id="search-button">Search Characters</button>
               <p id="form-message" class="form-message" aria-live="polite"></p>
             </div>
           </form>
@@ -68,39 +68,112 @@
         <section class="dashboard">
           <aside class="results-sidebar">
             <div class="sidebar-header">
-              <div>
-                <p class="eyebrow">Results List</p>
-                <h2>Earthquakes</h2>
-              </div>
-              <p id="results-summary" class="results-summary">Run a search to populate the map and list.</p>
+              <p class="eyebrow">Results List</p>
+              <h2>Characters</h2>
+              <p id="results-summary" class="results-summary">
+                Search the multiverse to load matching characters.
+              </p>
             </div>
 
             <div id="loading-state" class="status-card hidden" aria-live="polite">
-              Loading earthquake data...
+              Loading characters...
             </div>
 
             <div id="empty-state" class="status-card">
-              Search for earthquakes to see points on the world map and matching entries in the list.
+              Use the search form to load Rick and Morty characters and inspect one in the detail panel.
             </div>
 
             <div id="results-list" class="results-list" aria-live="polite"></div>
           </aside>
 
-          <section class="map-panel">
-            <div class="map-header">
-              <p class="eyebrow">Map View</p>
-              <p class="map-help">Click a list item or a marker to focus that earthquake.</p>
+          <section class="detail-panel">
+            <div class="detail-header">
+              <p class="eyebrow">Character Detail</p>
+              <p class="detail-help">Select any result to update the profile and the 3D viewer.</p>
             </div>
-            <div id="map" class="map-canvas" aria-label="World map of earthquake locations"></div>
+
+            <div id="detail-empty" class="detail-empty">
+              Character image, facts, and 3D showcase will appear here.
+            </div>
+
+            <div id="detail-content" class="detail-content hidden">
+              <div class="detail-card">
+                <img id="character-image" class="character-image" src="" alt="">
+
+                <div class="detail-copy">
+                  <div class="detail-title-row">
+                    <div>
+                      <h3 id="character-name" class="character-name"></h3>
+                      <p id="character-tagline" class="character-tagline"></p>
+                    </div>
+                    <span id="status-badge" class="status-badge"></span>
+                  </div>
+
+                  <div class="stat-grid">
+                    <div class="stat-box">
+                      <span class="stat-label">Species</span>
+                      <span id="character-species" class="stat-value"></span>
+                    </div>
+                    <div class="stat-box">
+                      <span class="stat-label">Gender</span>
+                      <span id="character-gender" class="stat-value"></span>
+                    </div>
+                    <div class="stat-box">
+                      <span class="stat-label">Origin</span>
+                      <span id="character-origin" class="stat-value"></span>
+                    </div>
+                    <div class="stat-box">
+                      <span class="stat-label">Last location</span>
+                      <span id="character-location" class="stat-value"></span>
+                    </div>
+                    <div class="stat-box">
+                      <span class="stat-label">Episodes</span>
+                      <span id="character-episodes" class="stat-value"></span>
+                    </div>
+                    <div class="stat-box">
+                      <span class="stat-label">API ID</span>
+                      <span id="character-id" class="stat-value"></span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="viewer-panel">
+                <div class="viewer-header">
+                  <div>
+                    <p class="viewer-title">3D Character Showcase</p>
+                    <p id="viewer-caption" class="viewer-caption"></p>
+                  </div>
+                </div>
+
+                <div class="viewer-frame-shell">
+                  <iframe
+                    id="character-viewer"
+                    class="character-viewer"
+                    title="Rick and Morty 3D viewer"
+                    frameborder="0"
+                    allowfullscreen
+                    mozallowfullscreen="true"
+                    webkitallowfullscreen="true"
+                    allow="autoplay; fullscreen; xr-spatial-tracking"
+                    xr-spatial-tracking
+                    execution-while-out-of-viewport
+                    execution-while-not-rendered
+                    web-share
+                    src="">
+                  </iframe>
+                </div>
+
+                <p class="viewer-note">
+                  3D embeds shown from Sketchfab for visual presentation.
+                </p>
+              </div>
+            </div>
           </section>
         </section>
       </main>
     </div>
 
-    <script
-      src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
-      integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
-      crossorigin=""></script>
     <script src="js/app.js"></script>
   </body>
 </html>

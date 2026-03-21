@@ -1,33 +1,40 @@
 const searchForm = document.getElementById("search-form");
-const startDateInput = document.getElementById("start-date");
-const endDateInput = document.getElementById("end-date");
-const minMagnitudeInput = document.getElementById("min-magnitude");
-const formMessage = document.getElementById("form-message");
+const nameInput = document.getElementById("name-input");
+const statusSelect = document.getElementById("status-select");
+const speciesInput = document.getElementById("species-input");
 const searchButton = document.getElementById("search-button");
+const formMessage = document.getElementById("form-message");
 const loadingState = document.getElementById("loading-state");
 const emptyState = document.getElementById("empty-state");
 const resultsList = document.getElementById("results-list");
 const resultsSummary = document.getElementById("results-summary");
+const detailEmpty = document.getElementById("detail-empty");
+const detailContent = document.getElementById("detail-content");
+const characterImage = document.getElementById("character-image");
+const detailName = document.getElementById("character-name");
+const characterTagline = document.getElementById("character-tagline");
+const statusBadge = document.getElementById("status-badge");
+const characterSpecies = document.getElementById("character-species");
+const characterGender = document.getElementById("character-gender");
+const characterOrigin = document.getElementById("character-origin");
+const characterLocation = document.getElementById("character-location");
+const characterEpisodes = document.getElementById("character-episodes");
+const characterId = document.getElementById("character-id");
+const characterViewer = document.getElementById("character-viewer");
+const viewerCaption = document.getElementById("viewer-caption");
 
-const oneDayMs = 24 * 60 * 60 * 1000;
-const defaultEndDate = new Date();
-const defaultStartDate = new Date(defaultEndDate.getTime() - (14 * oneDayMs));
+const embeds = {
+  rick: {
+    src: "https://sketchfab.com/models/1a6d20d377d04929a6e5d14fb787e6b3/embed",
+    caption: "3D showcase using a Rick Sanchez Sketchfab model.",
+  },
+  morty: {
+    src: "https://sketchfab.com/models/e2c69b5e1bdb4fdfb4132e0709ce1765/embed",
+    caption: "3D showcase using a Morty Sketchfab model.",
+  },
+};
 
-let map;
-let markerLayer;
-let activeFeatureId = "";
-const featureIndex = new Map();
-
-function formatDateInput(date) {
-  return date.toISOString().split("T")[0];
-}
-
-function formatEventTime(timestamp) {
-  return new Date(timestamp).toLocaleString("en-US", {
-    dateStyle: "medium",
-    timeStyle: "short",
-  });
-}
+let currentCharacters = [];
 
 function setMessage(message, type = "") {
   formMessage.textContent = message;
@@ -43,209 +50,167 @@ function toggleLoading(isLoading) {
   searchButton.disabled = isLoading;
 }
 
-function getMagnitudeColor(magnitude) {
-  if (magnitude >= 6) {
-    return "#cb4b16";
-  }
-
-  if (magnitude >= 5) {
-    return "#e97a1f";
-  }
-
-  if (magnitude >= 4) {
-    return "#f59e0b";
-  }
-
-  return "#f5b942";
-}
-
-function getMarkerRadius(magnitude) {
-  return Math.max(6, Math.min(20, (magnitude || 0) * 2.2));
-}
-
 function clearResults() {
   resultsList.innerHTML = "";
-  featureIndex.clear();
-  activeFeatureId = "";
-
-  if (markerLayer) {
-    markerLayer.clearLayers();
-  }
+  currentCharacters = [];
 }
 
 function validateForm() {
-  const startDate = startDateInput.value;
-  const endDate = endDateInput.value;
-  const minMagnitude = Number(minMagnitudeInput.value);
+  const trimmedName = nameInput.value.trim();
+  const trimmedSpecies = speciesInput.value.trim();
 
-  if (!startDate || !endDate || Number.isNaN(minMagnitudeInput.valueAsNumber)) {
-    return "Please complete all form fields.";
+  if (!trimmedName) {
+    return "Please enter a character name.";
   }
 
-  if (minMagnitude < 0 || minMagnitude > 10) {
-    return "Minimum magnitude must be between 0 and 10.";
+  if (trimmedName.length < 2) {
+    return "Character name must contain at least 2 characters.";
   }
 
-  if (startDate > endDate) {
-    return "Start date must be earlier than or equal to the end date.";
-  }
-
-  const rangeDays = (new Date(endDate) - new Date(startDate)) / oneDayMs;
-  if (rangeDays > 365) {
-    return "Please keep the search range to 365 days or less.";
+  if (trimmedSpecies && trimmedSpecies.length < 2) {
+    return "Species must be at least 2 characters when provided.";
   }
 
   return "";
 }
 
-function buildPopup(feature) {
-  const { mag, place, time } = feature.properties;
+function buildQueryUrl() {
+  const endpoint = new URL("https://rickandmortyapi.com/api/character/");
+  endpoint.searchParams.set("name", nameInput.value.trim());
 
-  return `
-    <div>
-      <p class="popup-title">M ${mag ?? "N/A"} • ${place || "Unknown location"}</p>
-      <p class="popup-copy">${formatEventTime(time)}</p>
-    </div>
-  `;
+  if (statusSelect.value) {
+    endpoint.searchParams.set("status", statusSelect.value);
+  }
+
+  if (speciesInput.value.trim()) {
+    endpoint.searchParams.set("species", speciesInput.value.trim());
+  }
+
+  return endpoint;
 }
 
-function setActiveFeature(featureId, shouldPan = false) {
-  activeFeatureId = featureId;
+function getStatusClass(status) {
+  const normalized = status.toLowerCase();
 
-  featureIndex.forEach(({ item, marker, feature }) => {
-    const isActive = feature.id === featureId;
-    item.classList.toggle("active", isActive);
+  if (normalized === "alive") {
+    return "alive";
+  }
 
-    marker.setStyle({
-      weight: isActive ? 3 : 1.5,
-      fillOpacity: isActive ? 0.95 : 0.82,
-    });
+  if (normalized === "dead") {
+    return "dead";
+  }
 
-    if (isActive) {
-      item.scrollIntoView({ block: "nearest", behavior: "smooth" });
-
-      if (shouldPan && map) {
-        const [longitude, latitude] = feature.geometry.coordinates;
-        map.flyTo([latitude, longitude], Math.max(map.getZoom(), 4), {
-          duration: 0.7,
-        });
-      }
-
-      marker.openPopup();
-    }
-  });
+  return "unknown";
 }
 
-function buildListItem(feature) {
-  const [longitude, latitude, depth] = feature.geometry.coordinates;
-  const { mag, place, time, url } = feature.properties;
-  const item = document.createElement("article");
-  item.className = "quake-item";
-  item.tabIndex = 0;
-  item.innerHTML = `
-    <div class="quake-topline">
-      <div>
-        <h3 class="quake-location">${place || "Unknown location"}</h3>
-        <p class="quake-time">${formatEventTime(time)}</p>
-      </div>
-      <div class="magnitude-badge">${mag ?? "N/A"}</div>
-    </div>
-    <div class="quake-meta-row">
-      <span class="quake-meta">Depth ${typeof depth === "number" ? `${depth.toFixed(1)} km` : "N/A"}</span>
-      <span class="quake-meta">Lat ${latitude.toFixed(2)}</span>
-      <span class="quake-meta">Lng ${longitude.toFixed(2)}</span>
-    </div>
-    <a class="quake-link" href="${url}" target="_blank" rel="noreferrer">View USGS event</a>
-  `;
+function getViewerForCharacter(character) {
+  const name = character.name.toLowerCase();
 
-  item.addEventListener("click", (event) => {
-    if (event.target.closest("a")) {
+  if (name.includes("morty")) {
+    return embeds.morty;
+  }
+
+  return embeds.rick;
+}
+
+function setActiveCharacter(characterIdValue) {
+  currentCharacters.forEach((character) => {
+    const item = document.querySelector(`[data-character-id="${character.id}"]`);
+    if (!item) {
       return;
     }
 
-    setActiveFeature(feature.id, true);
+    const isActive = character.id === characterIdValue;
+    item.classList.toggle("active", isActive);
+
+    if (isActive) {
+      renderCharacterDetail(character);
+      item.scrollIntoView({ block: "nearest", behavior: "smooth" });
+    }
   });
+}
+
+function renderCharacterDetail(character) {
+  const viewer = getViewerForCharacter(character);
+
+  detailEmpty.classList.add("hidden");
+  detailContent.classList.remove("hidden");
+
+  characterImage.src = character.image;
+  characterImage.alt = `${character.name} portrait`;
+  detailName.textContent = character.name;
+  characterTagline.textContent = `${character.status} ${character.species}${character.type ? ` • ${character.type}` : ""}`;
+  statusBadge.textContent = character.status;
+  statusBadge.className = `status-badge ${getStatusClass(character.status)}`;
+  characterSpecies.textContent = character.species || "Unknown";
+  characterGender.textContent = character.gender || "Unknown";
+  characterOrigin.textContent = character.origin?.name || "Unknown";
+  characterLocation.textContent = character.location?.name || "Unknown";
+  characterEpisodes.textContent = String(character.episode.length);
+  characterId.textContent = String(character.id);
+  characterViewer.src = viewer.src;
+  viewerCaption.textContent = viewer.caption;
+}
+
+function buildCharacterItem(character) {
+  const item = document.createElement("article");
+  item.className = "character-item";
+  item.dataset.characterId = String(character.id);
+  item.tabIndex = 0;
+  item.innerHTML = `
+    <img class="character-thumb" src="${character.image}" alt="${character.name}">
+    <div>
+      <h3 class="character-item-name">${character.name}</h3>
+      <p class="character-meta">${character.status} • ${character.species} • ${character.gender}</p>
+    </div>
+  `;
+
+  const activate = () => {
+    setActiveCharacter(character.id);
+  };
+
+  item.addEventListener("click", activate);
   item.addEventListener("keydown", (event) => {
     if (event.key === "Enter" || event.key === " ") {
       event.preventDefault();
-      setActiveFeature(feature.id, true);
+      activate();
     }
   });
 
   return item;
 }
 
-function addFeatureToMap(feature, item) {
-  const [longitude, latitude] = feature.geometry.coordinates;
-  const magnitude = feature.properties.mag || 0;
-
-  const marker = L.circleMarker([latitude, longitude], {
-    radius: getMarkerRadius(magnitude),
-    color: "#ffffff",
-    weight: 1.5,
-    fillColor: getMagnitudeColor(magnitude),
-    fillOpacity: 0.82,
-  });
-
-  marker.bindPopup(buildPopup(feature));
-  marker.addTo(markerLayer);
-
-  marker.on("click", () => {
-    setActiveFeature(feature.id, false);
-  });
-
-  featureIndex.set(feature.id, { feature, item, marker });
-}
-
-function renderResults(features, startDate, endDate, minMagnitude) {
+function renderResults(characters) {
   clearResults();
 
-  if (!features.length) {
+  if (!characters.length) {
     emptyState.classList.remove("hidden");
-    resultsSummary.textContent = `No earthquakes matched ${startDate} to ${endDate} at magnitude ${minMagnitude}+`;
-    if (map) {
-      map.setView([20, 0], 2);
-    }
+    detailEmpty.classList.remove("hidden");
+    detailContent.classList.add("hidden");
+    resultsSummary.textContent = "No characters matched your filters.";
     return;
   }
 
   emptyState.classList.add("hidden");
-  resultsSummary.textContent = `Showing ${features.length} earthquakes from ${startDate} to ${endDate} with magnitude ${minMagnitude}+`;
+  resultsSummary.textContent = `Showing ${characters.length} matching characters.`;
+  currentCharacters = characters;
 
-  const bounds = [];
-
-  features.forEach((feature) => {
-    const item = buildListItem(feature);
-    resultsList.appendChild(item);
-    addFeatureToMap(feature, item);
-
-    const [longitude, latitude] = feature.geometry.coordinates;
-    bounds.push([latitude, longitude]);
+  characters.forEach((character) => {
+    resultsList.appendChild(buildCharacterItem(character));
   });
 
-  if (bounds.length === 1) {
-    if (map) {
-      map.setView(bounds[0], 4);
-    }
-  } else if (map) {
-    map.fitBounds(bounds, { padding: [40, 40] });
-  }
-
-  setActiveFeature(features[0].id, false);
+  setActiveCharacter(characters[0].id);
 }
 
-async function fetchEarthquakes(startDate, endDate, minMagnitude) {
-  const endpoint = new URL("https://earthquake.usgs.gov/fdsnws/event/1/query");
-  endpoint.searchParams.set("format", "geojson");
-  endpoint.searchParams.set("starttime", startDate);
-  endpoint.searchParams.set("endtime", endDate);
-  endpoint.searchParams.set("minmagnitude", String(minMagnitude));
-  endpoint.searchParams.set("orderby", "time");
-  endpoint.searchParams.set("limit", "30");
+async function fetchCharacters() {
+  const response = await fetch(buildQueryUrl());
 
-  const response = await fetch(endpoint);
+  if (response.status === 404) {
+    return { results: [] };
+  }
+
   if (!response.ok) {
-    throw new Error(`USGS request failed with status ${response.status}.`);
+    throw new Error(`Rick and Morty API request failed with status ${response.status}.`);
   }
 
   return response.json();
@@ -260,56 +225,33 @@ async function handleSearch(event) {
     return;
   }
 
-  const startDate = startDateInput.value;
-  const endDate = endDateInput.value;
-  const minMagnitude = Number(minMagnitudeInput.value).toFixed(1);
-
-  setMessage("Fetching earthquake data...", "success");
+  setMessage("Searching the multiverse...", "success");
   toggleLoading(true);
   emptyState.classList.add("hidden");
-  clearResults();
 
   try {
-    const data = await fetchEarthquakes(startDate, endDate, minMagnitude);
-    const features = data.features || [];
-    renderResults(features, startDate, endDate, minMagnitude);
-    setMessage(`Loaded ${features.length} earthquake records.`, "success");
+    const data = await fetchCharacters();
+    const characters = data.results || [];
+    renderResults(characters);
+    setMessage(`Loaded ${characters.length} character records.`, "success");
   } catch (error) {
+    clearResults();
     emptyState.classList.remove("hidden");
-    resultsSummary.textContent = "Unable to load earthquake data right now.";
+    detailEmpty.classList.remove("hidden");
+    detailContent.classList.add("hidden");
+    resultsSummary.textContent = "Unable to load character data right now.";
     setMessage(error.message, "error");
-    if (map) {
-      map.setView([20, 0], 2);
-    }
   } finally {
     toggleLoading(false);
   }
 }
 
-function initMap() {
-  if (typeof L === "undefined") {
-    resultsSummary.textContent = "Map library could not be loaded.";
-    setMessage("The map could not be initialized. Check your internet connection.", "error");
-    return;
-  }
-
-  map = L.map("map", {
-    worldCopyJump: true,
-    minZoom: 2,
-  }).setView([20, 0], 2);
-
-  L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
-  }).addTo(map);
-
-  markerLayer = L.layerGroup().addTo(map);
-}
-
 function initDefaults() {
-  endDateInput.value = formatDateInput(defaultEndDate);
-  startDateInput.value = formatDateInput(defaultStartDate);
+  nameInput.value = "rick";
+  speciesInput.value = "";
+  statusSelect.value = "";
 }
 
-initMap();
 initDefaults();
 searchForm.addEventListener("submit", handleSearch);
+searchForm.requestSubmit();

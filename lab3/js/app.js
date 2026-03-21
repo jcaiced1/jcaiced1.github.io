@@ -1,13 +1,5 @@
 const API_BASE = 'https://csumb.space/api';
 
-const fallbackStates = [
-  { usps: 'CA', name: 'California' },
-  { usps: 'NY', name: 'New York' },
-  { usps: 'TX', name: 'Texas' },
-  { usps: 'FL', name: 'Florida' },
-  { usps: 'WA', name: 'Washington' }
-];
-
 const fallbackCounties = {
   ca: ['Monterey', 'Los Angeles', 'Orange', 'San Diego', 'San Francisco'],
   ny: ['Albany', 'Kings', 'Queens', 'Monroe', 'Suffolk'],
@@ -68,6 +60,13 @@ function populateStates(states) {
     });
 }
 
+function showStatesUnavailable() {
+  stateSelect.innerHTML = '<option value="">States API unavailable</option>';
+  stateSelect.disabled = true;
+  countySelect.innerHTML = '<option value="">Select a state first</option>';
+  countySelect.disabled = true;
+}
+
 function populateCounties(counties) {
   countySelect.innerHTML = '<option value="">Select County</option>';
   counties.forEach((county) => {
@@ -83,10 +82,12 @@ async function loadStates() {
     const data = await getJson(`${API_BASE}/allStatesAPI.php`);
     const states = Array.isArray(data) ? data : data.states || [];
     if (!states.length) throw new Error('No states returned');
+    stateSelect.disabled = false;
+    countySelect.disabled = false;
     populateStates(states.map((state) => ({ usps: state.usps || state.abbreviation, name: state.state || state.name })));
   } catch (error) {
-    populateStates(fallbackStates);
-    setMessage(formMessage, 'Live states API is unavailable right now, so fallback data is being used.', 'warning');
+    showStatesUnavailable();
+    setMessage(formMessage, 'States API is unavailable right now. Reload the page and try again later.', 'warning');
   }
 }
 

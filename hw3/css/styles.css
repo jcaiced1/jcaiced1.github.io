@@ -296,6 +296,10 @@ button:disabled {
   align-items: start;
 }
 
+.dashboard.single-result {
+  grid-template-columns: 1fr;
+}
+
 .results-sidebar {
   display: grid;
   grid-template-rows: auto auto auto 1fr;

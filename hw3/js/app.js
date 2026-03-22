@@ -8,6 +8,8 @@ const loadingState = document.getElementById("loading-state");
 const emptyState = document.getElementById("empty-state");
 const resultsList = document.getElementById("results-list");
 const resultsSummary = document.getElementById("results-summary");
+const dashboard = document.querySelector(".dashboard");
+const resultsSidebar = document.querySelector(".results-sidebar");
 const detailEmpty = document.getElementById("detail-empty");
 const detailContent = document.getElementById("detail-content");
 const characterImage = document.getElementById("character-image");
@@ -192,25 +194,34 @@ async function fetchCatalog() {
 
   const firstPage = await firstResponse.json();
   const pages = firstPage.info.pages;
-  const pageRequests = [];
+  const remainingPages = [];
+  const concurrency = 4;
 
-  for (let page = 2; page <= pages; page += 1) {
-    pageRequests.push(
-      fetch(`https://rickandmortyapi.com/api/character/?page=${page}`)
-        .then((response) => {
-          if (!response.ok) {
-            throw new Error(`Page ${page} failed with status ${response.status}.`);
-          }
+  for (let page = 2; page <= pages; page += concurrency) {
+    const batch = [];
 
-          return response.json();
-        })
+    for (let offset = 0; offset < concurrency && page + offset <= pages; offset += 1) {
+      const currentPage = page + offset;
+      batch.push(
+        fetch(`https://rickandmortyapi.com/api/character/?page=${currentPage}`)
+          .then((response) => {
+            if (!response.ok) {
+              throw new Error(`Page ${currentPage} failed with status ${response.status}.`);
+            }
+
+            return response.json();
+          })
+      );
+    }
+
+    const settledBatch = await Promise.allSettled(batch);
+    remainingPages.push(
+      ...settledBatch
+        .filter((result) => result.status === "fulfilled")
+        .map((result) => result.value)
     );
   }
 
-  const settledPages = await Promise.allSettled(pageRequests);
-  const remainingPages = settledPages
-    .filter((result) => result.status === "fulfilled")
-    .map((result) => result.value);
   const characters = [
     ...firstPage.results,
     ...remainingPages.flatMap((page) => page.results || []),
@@ -342,6 +353,8 @@ function renderResults(characters) {
   clearResults();
 
   if (!characters.length) {
+    dashboard.classList.remove("single-result");
+    resultsSidebar.classList.remove("hidden");
     emptyState.classList.remove("hidden");
     detailEmpty.classList.remove("hidden");
     detailContent.classList.add("hidden");
@@ -350,12 +363,16 @@ function renderResults(characters) {
   }
 
   emptyState.classList.add("hidden");
+  dashboard.classList.toggle("single-result", characters.length === 1);
+  resultsSidebar.classList.toggle("hidden", characters.length === 1);
   resultsSummary.textContent = `Showing ${characters.length} matching characters.`;
   currentCharacters = characters;
 
-  characters.forEach((character) => {
-    resultsList.appendChild(buildCharacterItem(character));
-  });
+  if (characters.length > 1) {
+    characters.forEach((character) => {
+      resultsList.appendChild(buildCharacterItem(character));
+    });
+  }
 
   setActiveCharacter(characters[0].id);
 }

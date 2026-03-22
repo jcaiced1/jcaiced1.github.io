@@ -1,14 +1,14 @@
 :root {
   --bg: #040814;
-  --panel: rgba(7, 14, 30, 0.7);
-  --panel-strong: rgba(7, 14, 30, 0.82);
-  --panel-soft: rgba(237, 243, 255, 0.9);
+  --panel: rgba(7, 14, 30, 0.56);
+  --panel-strong: rgba(7, 14, 30, 0.74);
+  --panel-soft: rgba(13, 23, 43, 0.86);
   --panel-border: rgba(134, 168, 222, 0.22);
   --panel-border-soft: rgba(134, 168, 222, 0.16);
   --text: #edf4ff;
   --text-dark: #102234;
   --muted: rgba(224, 234, 255, 0.72);
-  --muted-dark: #5f7189;
+  --muted-dark: rgba(215, 226, 248, 0.72);
   --ember: #f59e0b;
   --ember-deep: #d86d0c;
   --ice: #8fe8ff;
@@ -29,11 +29,12 @@ html {
 }
 
 body {
+  position: relative;
   margin: 0;
   min-height: 100vh;
   font-family: "Manrope", sans-serif;
   color: var(--text);
-  background: var(--bg);
+  background: transparent;
 }
 
 .page-video,
@@ -47,20 +48,21 @@ body {
 
 .page-video {
   object-fit: cover;
-  filter: saturate(0.7) brightness(0.34);
-  z-index: -2;
+  filter: saturate(0.88) brightness(0.5);
+  z-index: 0;
 }
 
 .page-overlay {
-  z-index: -1;
+  z-index: 1;
   background:
-    radial-gradient(circle at 15% 10%, rgba(77, 161, 255, 0.18), transparent 26%),
-    radial-gradient(circle at 82% 18%, rgba(245, 158, 11, 0.16), transparent 24%),
-    linear-gradient(180deg, rgba(1, 7, 20, 0.46) 0%, rgba(1, 7, 20, 0.76) 44%, rgba(1, 7, 20, 0.92) 100%);
+    radial-gradient(circle at 15% 10%, rgba(77, 161, 255, 0.12), transparent 26%),
+    radial-gradient(circle at 82% 18%, rgba(245, 158, 11, 0.09), transparent 24%),
+    linear-gradient(180deg, rgba(1, 7, 20, 0.24) 0%, rgba(1, 7, 20, 0.54) 44%, rgba(1, 7, 20, 0.72) 100%);
 }
 
 .page-shell {
   position: relative;
+  z-index: 2;
   padding: 28px 18px 40px;
 }
 
@@ -89,20 +91,18 @@ body {
 }
 
 .results-sidebar {
-  background: rgba(238, 244, 255, 0.92);
-  border-color: var(--panel-border-soft);
-  box-shadow: var(--shadow-soft);
+  background: rgba(8, 16, 31, 0.82);
+  border-color: rgba(143, 232, 255, 0.16);
+  box-shadow: var(--shadow);
 }
 
 .hero {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) 280px;
-  gap: 28px;
-  padding: 34px;
+  display: block;
+  padding: 28px 34px 24px;
 }
 
 .hero-copy-block {
-  max-width: 66ch;
+  max-width: 100%;
 }
 
 .eyebrow {
@@ -150,47 +150,6 @@ button,
 
 h2 {
   font-size: clamp(1.4rem, 2.8vw, 2rem);
-}
-
-.hero-copy {
-  margin: 18px 0 0;
-  max-width: 58ch;
-  font-size: 1.04rem;
-  line-height: 1.7;
-  color: rgba(237, 244, 255, 0.86);
-}
-
-.hero-copy code {
-  padding: 2px 8px;
-  border-radius: 999px;
-  background: rgba(255, 255, 255, 0.08);
-}
-
-.hero-side {
-  align-self: end;
-  display: grid;
-  gap: 10px;
-  justify-items: start;
-  padding: 18px;
-  border: 1px solid rgba(143, 232, 255, 0.16);
-  border-radius: 20px;
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0.02) 100%);
-}
-
-.hero-kicker {
-  margin: 0;
-  color: var(--muted);
-  font-weight: 700;
-}
-
-.hero-side a,
-.quake-link {
-  color: inherit;
-  font-weight: 800;
-}
-
-.hero-side a {
-  color: #ffffff;
 }
 
 .search-panel {
@@ -360,7 +319,7 @@ button:disabled {
 .quake-link,
 .quake-time,
 .quake-meta {
-  color: var(--text-dark);
+  color: var(--text);
 }
 
 .results-summary {
@@ -372,8 +331,8 @@ button:disabled {
   margin: 18px 24px 0;
   padding: 16px 18px;
   border-radius: 16px;
-  background: rgba(255, 255, 255, 0.64);
-  border: 1px dashed rgba(16, 34, 52, 0.18);
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px dashed rgba(143, 232, 255, 0.18);
 }
 
 .hidden {
@@ -392,9 +351,9 @@ button:disabled {
   display: grid;
   gap: 8px;
   padding: 14px 14px 12px;
-  border: 1px solid rgba(86, 121, 160, 0.16);
+  border: 1px solid rgba(143, 232, 255, 0.1);
   border-radius: 16px;
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.92) 0%, rgba(238, 245, 255, 0.88) 100%);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0.05) 100%);
   cursor: pointer;
   transition: transform 0.16s ease, border-color 0.16s ease, box-shadow 0.16s ease;
 }
@@ -402,8 +361,8 @@ button:disabled {
 .quake-item:hover,
 .quake-item.active {
   transform: translateY(-1px);
-  border-color: rgba(107, 167, 255, 0.38);
-  box-shadow: 0 10px 24px rgba(11, 28, 51, 0.12);
+  border-color: rgba(245, 158, 11, 0.5);
+  box-shadow: 0 10px 24px rgba(1, 8, 22, 0.26);
 }
 
 .quake-item:focus-visible {
@@ -435,7 +394,7 @@ button:disabled {
 
 .quake-time {
   margin: 6px 0 0;
-  color: var(--muted-dark);
+  color: rgba(224, 234, 255, 0.74);
   font-size: 0.9rem;
 }
 
@@ -448,14 +407,15 @@ button:disabled {
 .quake-meta {
   padding: 6px 9px;
   border-radius: 999px;
-  background: #e8f1fb;
-  color: var(--text-dark);
+  background: rgba(143, 232, 255, 0.08);
+  color: #dcecff;
   font-size: 0.86rem;
 }
 
 .quake-link {
   font-size: 0.93rem;
   font-weight: 800;
+  color: #fff2cc;
 }
 
 .results-pagination {
@@ -466,8 +426,8 @@ button:disabled {
   justify-content: space-between;
   gap: 12px;
   padding: 14px 18px 18px 24px;
-  border-top: 1px solid rgba(16, 34, 52, 0.08);
-  background: linear-gradient(180deg, rgba(237, 243, 255, 0.4) 0%, rgba(237, 243, 255, 0.94) 42%);
+  border-top: 1px solid rgba(143, 232, 255, 0.12);
+  background: linear-gradient(180deg, rgba(8, 16, 31, 0.28) 0%, rgba(8, 16, 31, 0.9) 42%);
 }
 
 .pager-button {
@@ -547,10 +507,6 @@ button:disabled {
 }
 
 @media (max-width: 1100px) {
-  .hero {
-    grid-template-columns: 1fr;
-  }
-
   .dashboard {
     grid-template-columns: 1fr;
   }

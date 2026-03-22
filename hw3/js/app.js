@@ -1,36 +1,33 @@
 const searchForm = document.getElementById("search-form");
-const nameSelect = document.getElementById("name-select");
-const statusSelect = document.getElementById("status-select");
-const speciesSelect = document.getElementById("species-select");
-const searchButton = document.getElementById("search-button");
+const startDateInput = document.getElementById("start-date");
+const endDateInput = document.getElementById("end-date");
+const minMagnitudeInput = document.getElementById("min-magnitude");
 const formMessage = document.getElementById("form-message");
+const searchButton = document.getElementById("search-button");
 const loadingState = document.getElementById("loading-state");
 const emptyState = document.getElementById("empty-state");
 const resultsList = document.getElementById("results-list");
 const resultsSummary = document.getElementById("results-summary");
-const dashboard = document.querySelector(".dashboard");
-const resultsSidebar = document.querySelector(".results-sidebar");
-const detailEmpty = document.getElementById("detail-empty");
-const detailContent = document.getElementById("detail-content");
-const characterImage = document.getElementById("character-image");
-const detailName = document.getElementById("character-name");
-const characterTagline = document.getElementById("character-tagline");
-const characterDescription = document.getElementById("character-description");
-const statusBadge = document.getElementById("status-badge");
-const characterSpecies = document.getElementById("character-species");
-const characterGender = document.getElementById("character-gender");
-const characterOrigin = document.getElementById("character-origin");
-const characterLocation = document.getElementById("character-location");
-const characterEpisodes = document.getElementById("character-episodes");
-const characterType = document.getElementById("character-type");
-const characterCreated = document.getElementById("character-created");
-const characterId = document.getElementById("character-id");
-const fallbackPortrait = "img/rick-and-morty-logo.webp";
-const imageRequestCache = new Map();
 
-let currentCharacters = [];
-const nameFilters = new Map();
-const charactersByName = new Map();
+const oneDayMs = 24 * 60 * 60 * 1000;
+const defaultEndDate = new Date();
+const defaultStartDate = new Date(defaultEndDate.getTime() - (14 * oneDayMs));
+
+let map;
+let markerLayer;
+let activeFeatureId = "";
+const featureIndex = new Map();
+
+function formatDateInput(date) {
+  return date.toISOString().split("T")[0];
+}
+
+function formatEventTime(timestamp) {
+  return new Date(timestamp).toLocaleString("en-US", {
+    dateStyle: "medium",
+    timeStyle: "short",
+  });
+}
 
 function setMessage(message, type = "") {
   formMessage.textContent = message;
@@ -46,347 +43,212 @@ function toggleLoading(isLoading) {
   searchButton.disabled = isLoading;
 }
 
+function getMagnitudeColor(magnitude) {
+  if (magnitude >= 6) {
+    return "#cb4b16";
+  }
+
+  if (magnitude >= 5) {
+    return "#e97a1f";
+  }
+
+  if (magnitude >= 4) {
+    return "#f59e0b";
+  }
+
+  return "#f5b942";
+}
+
+function getMarkerRadius(magnitude) {
+  return Math.max(6, Math.min(20, (magnitude || 0) * 2.2));
+}
+
 function clearResults() {
   resultsList.innerHTML = "";
-  currentCharacters = [];
+  featureIndex.clear();
+  activeFeatureId = "";
+
+  if (markerLayer) {
+    markerLayer.clearLayers();
+  }
 }
 
 function validateForm() {
-  if (!nameSelect.value) {
-    return "Please choose a character from the dropdown.";
+  const startDate = startDateInput.value;
+  const endDate = endDateInput.value;
+  const minMagnitude = Number(minMagnitudeInput.value);
+
+  if (!startDate || !endDate || Number.isNaN(minMagnitudeInput.valueAsNumber)) {
+    return "Please complete all form fields.";
+  }
+
+  if (minMagnitude < 0 || minMagnitude > 10) {
+    return "Minimum magnitude must be between 0 and 10.";
+  }
+
+  if (startDate > endDate) {
+    return "Start date must be earlier than or equal to the end date.";
+  }
+
+  const rangeDays = (new Date(endDate) - new Date(startDate)) / oneDayMs;
+  if (rangeDays > 365) {
+    return "Please keep the search range to 365 days or less.";
   }
 
   return "";
 }
 
-function getStatusClass(status) {
-  const normalized = status.toLowerCase();
+function buildPopup(feature) {
+  const { mag, place, time } = feature.properties;
 
-  if (normalized === "alive") {
-    return "alive";
-  }
-
-  if (normalized === "dead") {
-    return "dead";
-  }
-
-  return "unknown";
-}
-
-function formatCreatedDate(value) {
-  return new Date(value).toLocaleDateString("en-US", {
-    year: "numeric",
-    month: "short",
-    day: "numeric",
-  });
-}
-
-function buildDescription(character) {
-  const status = character.status.toLowerCase();
-  const species = character.species.toLowerCase();
-  const typeText = character.type ? ` with the subtype ${character.type}` : "";
-  const statusText = status === "alive" ? "is alive" : status === "dead" ? "is dead" : "has an unknown status";
-  return `${character.name} ${statusText} and is a ${species}${typeText}. ${character.name} comes from ${character.origin.name}, was last seen in ${character.location.name}, and appears in ${character.episode.length} episode${character.episode.length === 1 ? "" : "s"}.`;
-}
-
-function resolveImageSource(url, attempts = 2, delayMs = 1200) {
-  if (!url) {
-    return Promise.resolve(fallbackPortrait);
-  }
-
-  if (imageRequestCache.has(url)) {
-    return imageRequestCache.get(url);
-  }
-
-  const request = new Promise((resolve) => {
-    let attemptCount = 0;
-
-    function tryLoad() {
-      const probe = new Image();
-      probe.decoding = "async";
-
-      probe.onload = () => {
-        resolve(url);
-      };
-
-      probe.onerror = () => {
-        if (attemptCount < attempts) {
-          attemptCount += 1;
-          window.setTimeout(tryLoad, delayMs * attemptCount);
-          return;
-        }
-
-        resolve(fallbackPortrait);
-      };
-
-      probe.src = url;
-    }
-
-    tryLoad();
-  });
-
-  imageRequestCache.set(url, request);
-  return request;
-}
-
-async function assignResolvedImage(element, url, altText, fallbackAltText) {
-  element.dataset.requestedSrc = url;
-  const resolvedSrc = await resolveImageSource(url);
-
-  if (element.dataset.requestedSrc !== url) {
-    return;
-  }
-
-  element.src = resolvedSrc;
-  element.alt = resolvedSrc === fallbackPortrait ? fallbackAltText : altText;
-}
-
-function populateSelect(select, values, placeholder, selectedValue = "") {
-  select.innerHTML = `<option value="">${placeholder}</option>`;
-
-  values.forEach((value) => {
-    const option = document.createElement("option");
-    option.value = value;
-    option.textContent = value;
-    if (value === selectedValue) {
-      option.selected = true;
-    }
-    select.appendChild(option);
-  });
-}
-
-function populateConstrainedSelect(select, values, fallbackLabel, preferredValue = "") {
-  select.innerHTML = "";
-
-  if (values.length === 1) {
-    const option = document.createElement("option");
-    option.value = values[0];
-    option.textContent = values[0];
-    option.selected = true;
-    select.appendChild(option);
-    select.disabled = true;
-    return;
-  }
-
-  const placeholderOption = document.createElement("option");
-  placeholderOption.value = "";
-  placeholderOption.textContent = fallbackLabel;
-  select.appendChild(placeholderOption);
-
-  values.forEach((value) => {
-    const option = document.createElement("option");
-    option.value = value;
-    option.textContent = value;
-    if (value === preferredValue) {
-      option.selected = true;
-    }
-    select.appendChild(option);
-  });
-
-  select.disabled = false;
-}
-
-async function fetchCatalog() {
-  const firstResponse = await fetch("https://rickandmortyapi.com/api/character/");
-  if (!firstResponse.ok) {
-    throw new Error(`Catalog request failed with status ${firstResponse.status}.`);
-  }
-
-  const firstPage = await firstResponse.json();
-  const pages = firstPage.info.pages;
-  const remainingPages = [];
-  const concurrency = 4;
-
-  for (let page = 2; page <= pages; page += concurrency) {
-    const batch = [];
-
-    for (let offset = 0; offset < concurrency && page + offset <= pages; offset += 1) {
-      const currentPage = page + offset;
-      batch.push(
-        fetch(`https://rickandmortyapi.com/api/character/?page=${currentPage}`)
-          .then((response) => {
-            if (!response.ok) {
-              throw new Error(`Page ${currentPage} failed with status ${response.status}.`);
-            }
-
-            return response.json();
-          })
-      );
-    }
-
-    const settledBatch = await Promise.allSettled(batch);
-    remainingPages.push(
-      ...settledBatch
-        .filter((result) => result.status === "fulfilled")
-        .map((result) => result.value)
-    );
-  }
-
-  const characters = [
-    ...firstPage.results,
-    ...remainingPages.flatMap((page) => page.results || []),
-  ];
-
-  if (!characters.length) {
-    throw new Error("Character catalog could not be loaded.");
-  }
-
-  const names = [...new Set(characters.map((character) => character.name))].sort((left, right) => {
-    return left.localeCompare(right);
-  });
-
-  names.forEach((name) => {
-    const matchingCharacters = characters.filter((character) => character.name === name);
-    const statuses = [...new Set(matchingCharacters.map((character) => character.status))].sort((left, right) => {
-      return left.localeCompare(right);
-    });
-    const species = [...new Set(matchingCharacters.map((character) => character.species).filter(Boolean))].sort((left, right) => {
-      return left.localeCompare(right);
-    });
-    nameFilters.set(name, { statuses, species });
-    charactersByName.set(name, matchingCharacters);
-  });
-
-  populateSelect(nameSelect, names, "Select a character");
-}
-
-function updateDependentFilters(selectedName, preferredStatus = "", preferredSpecies = "") {
-  const selectedFilterSet = nameFilters.get(selectedName);
-
-  if (!selectedFilterSet) {
-    statusSelect.innerHTML = '<option value="">Select a character first</option>';
-    speciesSelect.innerHTML = '<option value="">Select a character first</option>';
-    statusSelect.disabled = true;
-    speciesSelect.disabled = true;
-    return;
-  }
-
-  populateConstrainedSelect(statusSelect, selectedFilterSet.statuses, "Any available status", preferredStatus);
-  populateConstrainedSelect(speciesSelect, selectedFilterSet.species, "Any available species", preferredSpecies);
-}
-
-function setActiveCharacter(characterIdValue) {
-  currentCharacters.forEach((character) => {
-    const item = document.querySelector(`[data-character-id="${character.id}"]`);
-    const isActive = character.id === characterIdValue;
-    if (item) {
-      item.classList.toggle("active", isActive);
-    }
-
-    if (isActive) {
-      renderCharacterDetail(character);
-      if (item) {
-        item.scrollIntoView({ block: "nearest", behavior: "smooth" });
-      }
-    }
-  });
-}
-
-function renderCharacterDetail(character) {
-  detailEmpty.classList.add("hidden");
-  detailContent.classList.remove("hidden");
-
-  characterImage.src = fallbackPortrait;
-  characterImage.alt = `${character.name} portrait loading`;
-  assignResolvedImage(
-    characterImage,
-    character.image,
-    `${character.name} portrait`,
-    `${character.name} fallback portrait`
-  );
-  detailName.textContent = character.name;
-  characterTagline.textContent = `${character.status} ${character.species}${character.type ? ` • ${character.type}` : ""}`;
-  characterDescription.textContent = buildDescription(character);
-  statusBadge.textContent = character.status;
-  statusBadge.className = `status-badge ${getStatusClass(character.status)}`;
-  characterSpecies.textContent = character.species || "Unknown";
-  characterGender.textContent = character.gender || "Unknown";
-  characterOrigin.textContent = character.origin?.name || "Unknown";
-  characterLocation.textContent = character.location?.name || "Unknown";
-  characterEpisodes.textContent = String(character.episode.length);
-  characterType.textContent = character.type || "No subtype listed";
-  characterCreated.textContent = formatCreatedDate(character.created);
-  characterId.textContent = String(character.id);
-}
-
-function buildCharacterItem(character) {
-  const item = document.createElement("article");
-  item.className = "character-item";
-  item.dataset.characterId = String(character.id);
-  item.tabIndex = 0;
-  item.innerHTML = `
-    <img class="character-thumb" src="${character.image}" alt="${character.name}">
+  return `
     <div>
-      <p class="character-stamp">Variant #${character.id}</p>
-      <h3 class="character-item-name">${character.name}</h3>
-      <p class="character-meta">${character.status} • ${character.species} • ${character.gender}</p>
-      <p class="character-origin-line">${character.origin?.name || "Unknown origin"}</p>
+      <p class="popup-title">M ${mag ?? "N/A"} • ${place || "Unknown location"}</p>
+      <p class="popup-copy">${formatEventTime(time)}</p>
     </div>
   `;
+}
 
-  const thumb = item.querySelector(".character-thumb");
-  thumb.src = fallbackPortrait;
-  thumb.alt = `${character.name} portrait loading`;
-  assignResolvedImage(
-    thumb,
-    character.image,
-    `${character.name} portrait`,
-    `${character.name} fallback portrait`
-  );
+function setActiveFeature(featureId, shouldPan = false) {
+  activeFeatureId = featureId;
 
-  const activate = () => {
-    setActiveCharacter(character.id);
-  };
+  featureIndex.forEach(({ item, marker, feature }) => {
+    const isActive = feature.id === featureId;
+    item.classList.toggle("active", isActive);
 
-  item.addEventListener("click", activate);
+    marker.setStyle({
+      weight: isActive ? 3 : 1.5,
+      fillOpacity: isActive ? 0.95 : 0.82,
+    });
+
+    if (isActive) {
+      item.scrollIntoView({ block: "nearest", behavior: "smooth" });
+
+      if (shouldPan && map) {
+        const [longitude, latitude] = feature.geometry.coordinates;
+        map.flyTo([latitude, longitude], Math.max(map.getZoom(), 4), {
+          duration: 0.7,
+        });
+      }
+
+      marker.openPopup();
+    }
+  });
+}
+
+function buildListItem(feature) {
+  const [longitude, latitude, depth] = feature.geometry.coordinates;
+  const { mag, place, time, url } = feature.properties;
+  const item = document.createElement("article");
+  item.className = "quake-item";
+  item.tabIndex = 0;
+  item.innerHTML = `
+    <div class="quake-topline">
+      <div>
+        <h3 class="quake-location">${place || "Unknown location"}</h3>
+        <p class="quake-time">${formatEventTime(time)}</p>
+      </div>
+      <div class="magnitude-badge">${mag ?? "N/A"}</div>
+    </div>
+    <div class="quake-meta-row">
+      <span class="quake-meta">Depth ${typeof depth === "number" ? `${depth.toFixed(1)} km` : "N/A"}</span>
+      <span class="quake-meta">Lat ${latitude.toFixed(2)}</span>
+      <span class="quake-meta">Lng ${longitude.toFixed(2)}</span>
+    </div>
+    <a class="quake-link" href="${url}" target="_blank" rel="noreferrer">View USGS event</a>
+  `;
+
+  item.addEventListener("click", (event) => {
+    if (event.target.closest("a")) {
+      return;
+    }
+
+    setActiveFeature(feature.id, true);
+  });
   item.addEventListener("keydown", (event) => {
     if (event.key === "Enter" || event.key === " ") {
       event.preventDefault();
-      activate();
+      setActiveFeature(feature.id, true);
     }
   });
 
   return item;
 }
 
-function renderResults(characters) {
+function addFeatureToMap(feature, item) {
+  const [longitude, latitude] = feature.geometry.coordinates;
+  const magnitude = feature.properties.mag || 0;
+
+  const marker = L.circleMarker([latitude, longitude], {
+    radius: getMarkerRadius(magnitude),
+    color: "#ffffff",
+    weight: 1.5,
+    fillColor: getMagnitudeColor(magnitude),
+    fillOpacity: 0.82,
+  });
+
+  marker.bindPopup(buildPopup(feature));
+  marker.addTo(markerLayer);
+
+  marker.on("click", () => {
+    setActiveFeature(feature.id, false);
+  });
+
+  featureIndex.set(feature.id, { feature, item, marker });
+}
+
+function renderResults(features, startDate, endDate, minMagnitude) {
   clearResults();
 
-  if (!characters.length) {
-    dashboard.classList.remove("single-result");
-    resultsSidebar.classList.remove("hidden");
+  if (!features.length) {
     emptyState.classList.remove("hidden");
-    detailEmpty.classList.remove("hidden");
-    detailContent.classList.add("hidden");
-    resultsSummary.textContent = "No characters matched your filters.";
+    resultsSummary.textContent = `No earthquakes matched ${startDate} to ${endDate} at magnitude ${minMagnitude}+`;
+    if (map) {
+      map.setView([20, 0], 2);
+    }
     return;
   }
 
   emptyState.classList.add("hidden");
-  dashboard.classList.toggle("single-result", characters.length === 1);
-  resultsSidebar.classList.toggle("hidden", characters.length === 1);
-  resultsSummary.textContent = `Showing ${characters.length} matching characters.`;
-  currentCharacters = characters;
+  resultsSummary.textContent = `Showing ${features.length} earthquakes from ${startDate} to ${endDate} with magnitude ${minMagnitude}+`;
 
-  if (characters.length > 1) {
-    characters.forEach((character) => {
-      resultsList.appendChild(buildCharacterItem(character));
-    });
-  }
+  const bounds = [];
 
-  setActiveCharacter(characters[0].id);
-}
+  features.forEach((feature) => {
+    const item = buildListItem(feature);
+    resultsList.appendChild(item);
+    addFeatureToMap(feature, item);
 
-function fetchCharacters() {
-  const selectedCharacters = charactersByName.get(nameSelect.value) || [];
-
-  const filteredMatches = selectedCharacters.filter((character) => {
-    const statusMatches = !statusSelect.value || character.status === statusSelect.value;
-    const speciesMatches = !speciesSelect.value || character.species === speciesSelect.value;
-    return statusMatches && speciesMatches;
+    const [longitude, latitude] = feature.geometry.coordinates;
+    bounds.push([latitude, longitude]);
   });
 
-  return { results: filteredMatches };
+  if (bounds.length === 1) {
+    if (map) {
+      map.setView(bounds[0], 4);
+    }
+  } else if (map) {
+    map.fitBounds(bounds, { padding: [40, 40] });
+  }
+
+  setActiveFeature(features[0].id, false);
+}
+
+async function fetchEarthquakes(startDate, endDate, minMagnitude) {
+  const endpoint = new URL("https://earthquake.usgs.gov/fdsnws/event/1/query");
+  endpoint.searchParams.set("format", "geojson");
+  endpoint.searchParams.set("starttime", startDate);
+  endpoint.searchParams.set("endtime", endDate);
+  endpoint.searchParams.set("minmagnitude", String(minMagnitude));
+  endpoint.searchParams.set("orderby", "time");
+  endpoint.searchParams.set("limit", "30");
+
+  const response = await fetch(endpoint);
+  if (!response.ok) {
+    throw new Error(`USGS request failed with status ${response.status}.`);
+  }
+
+  return response.json();
 }
 
 async function handleSearch(event) {
@@ -398,69 +260,57 @@ async function handleSearch(event) {
     return;
   }
 
-  setMessage("Searching the multiverse...", "success");
+  const startDate = startDateInput.value;
+  const endDate = endDateInput.value;
+  const minMagnitude = Number(minMagnitudeInput.value).toFixed(1);
+
+  setMessage("Fetching earthquake data...", "success");
   toggleLoading(true);
   emptyState.classList.add("hidden");
+  clearResults();
 
   try {
-    const data = await fetchCharacters();
-    const characters = data.results || [];
-    renderResults(characters);
-    setMessage(`Loaded ${characters.length} character records.`, "success");
+    const data = await fetchEarthquakes(startDate, endDate, minMagnitude);
+    const features = data.features || [];
+    renderResults(features, startDate, endDate, minMagnitude);
+    setMessage(`Loaded ${features.length} earthquake records.`, "success");
   } catch (error) {
     clearResults();
     emptyState.classList.remove("hidden");
-    detailEmpty.classList.remove("hidden");
-    detailContent.classList.add("hidden");
-    resultsSummary.textContent = "Unable to load character data right now.";
+    resultsSummary.textContent = "Unable to load earthquake data right now.";
     setMessage(error.message, "error");
+    if (map) {
+      map.setView([20, 0], 2);
+    }
   } finally {
     toggleLoading(false);
   }
 }
 
-function chooseRandomName() {
-  const names = [...nameFilters.keys()];
-  return names[Math.floor(Math.random() * names.length)] || "";
-}
-
-async function init() {
-  toggleLoading(true);
-  setMessage("Loading available character and species options...", "success");
-
-  try {
-    await fetchCatalog();
-    const randomName = chooseRandomName();
-    nameSelect.value = randomName;
-    updateDependentFilters(randomName);
-    setMessage("Character archive loaded. Showing a random character.", "success");
-    searchForm.requestSubmit();
-  } catch (error) {
-    setMessage(error.message, "error");
-    populateSelect(nameSelect, [], "Unable to load characters");
-    populateSelect(speciesSelect, [], "Unable to load species");
-    statusSelect.disabled = true;
-    speciesSelect.disabled = true;
-  } finally {
-    toggleLoading(false);
+function initMap() {
+  if (typeof L === "undefined") {
+    resultsSummary.textContent = "Map library could not be loaded.";
+    setMessage("The map could not be initialized. Check your internet connection.", "error");
+    return;
   }
+
+  map = L.map("map", {
+    worldCopyJump: true,
+    minZoom: 2,
+  }).setView([20, 0], 2);
+
+  L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+  }).addTo(map);
+
+  markerLayer = L.layerGroup().addTo(map);
 }
 
+function initDefaults() {
+  endDateInput.value = formatDateInput(defaultEndDate);
+  startDateInput.value = formatDateInput(defaultStartDate);
+}
+
+initMap();
+initDefaults();
 searchForm.addEventListener("submit", handleSearch);
-nameSelect.addEventListener("change", () => {
-  updateDependentFilters(nameSelect.value, statusSelect.value, speciesSelect.value);
-  if (nameSelect.value) {
-    searchForm.requestSubmit();
-  }
-});
-statusSelect.addEventListener("change", () => {
-  if (nameSelect.value) {
-    searchForm.requestSubmit();
-  }
-});
-speciesSelect.addEventListener("change", () => {
-  if (nameSelect.value) {
-    searchForm.requestSubmit();
-  }
-});
-init();

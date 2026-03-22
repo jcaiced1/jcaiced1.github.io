@@ -3,30 +3,39 @@
   <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>HW 3: Rick and Morty Character Lab</title>
+    <title>HW 3: Earthquake Explorer</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link
       href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=Manrope:wght@400;500;700;800&display=swap"
       rel="stylesheet">
+    <link
+      rel="stylesheet"
+      href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+      integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+      crossorigin="">
     <link rel="stylesheet" href="css/styles.css">
   </head>
   <body>
-    <video class="background-video" autoplay muted loop playsinline aria-hidden="true">
-      <source src="assets/rick-and-morty-in-outer-space.1920x1080.mp4" type="video/mp4">
-    </video>
-    <div class="background-overlay" aria-hidden="true"></div>
-
     <div class="page-shell">
       <main class="layout">
         <section class="hero">
-          <div class="hero-grid">
-            <div class="hero-copy-block">
-              <img
-                class="series-logo"
-                src="img/rick-and-morty-logo.webp"
-                alt="Rick and Morty logo">
-            </div>
+          <div class="hero-copy-block">
+            <p class="eyebrow">CST336 Homework 3</p>
+            <h1>Earthquake Explorer</h1>
+            <p class="hero-copy">
+              This page retrieves earthquake data from the USGS Earthquake Catalog Web API based on
+              a user-selected date range and minimum magnitude. It uses form validation, an event
+              listener, and <code>fetch()</code> to plot earthquakes on a world map and list them
+              in a user-friendly panel.
+            </p>
+          </div>
+
+          <div class="api-note">
+            <span>API used:</span>
+            <a href="https://earthquake.usgs.gov/fdsnws/event/1/" target="_blank" rel="noreferrer">
+              USGS Earthquake Catalog API
+            </a>
           </div>
         </section>
 
@@ -34,32 +43,23 @@
           <form id="search-form" novalidate>
             <div class="field-grid">
               <label class="field">
-                <span>Character</span>
-                <select id="name-select" name="name" required>
-                  <option value="">Loading characters...</option>
-                </select>
+                <span>Start date</span>
+                <input type="date" id="start-date" name="start-date" required>
               </label>
 
               <label class="field">
-                <span>Status</span>
-                <select id="status-select" name="status">
-                  <option value="">Any status</option>
-                  <option value="alive">Alive</option>
-                  <option value="dead">Dead</option>
-                  <option value="unknown">Unknown</option>
-                </select>
+                <span>End date</span>
+                <input type="date" id="end-date" name="end-date" required>
               </label>
 
               <label class="field">
-                <span>Species</span>
-                <select id="species-select" name="species">
-                  <option value="">Loading species...</option>
-                </select>
+                <span>Minimum magnitude</span>
+                <input type="number" id="min-magnitude" name="min-magnitude" min="0" max="10" step="0.1" value="4.5" required>
               </label>
             </div>
 
             <div class="controls">
-              <button type="submit" id="search-button">Search Characters</button>
+              <button type="submit" id="search-button">Load Earthquakes</button>
               <p id="form-message" class="form-message" aria-live="polite"></p>
             </div>
           </form>
@@ -68,103 +68,39 @@
         <section class="dashboard">
           <aside class="results-sidebar">
             <div class="sidebar-header">
-              <p class="eyebrow">Results</p>
-              <h2>Characters</h2>
-              <p id="results-summary" class="results-summary">
-                Select options from the dropdowns to load matching characters.
-              </p>
+              <div>
+                <p class="eyebrow">Results List</p>
+                <h2>Earthquakes</h2>
+              </div>
+              <p id="results-summary" class="results-summary">Run a search to populate the map and list.</p>
             </div>
 
             <div id="loading-state" class="status-card hidden" aria-live="polite">
-              Loading characters...
+              Loading earthquake data...
             </div>
 
             <div id="empty-state" class="status-card">
-              Choose a character and optional filters to inspect one in the detail panel.
+              Search for earthquakes to see points on the world map and matching entries in the list.
             </div>
 
             <div id="results-list" class="results-list" aria-live="polite"></div>
           </aside>
 
-          <section class="detail-panel">
-            <div class="detail-header">
-              <p class="eyebrow">Character Detail</p>
-              <p class="detail-help">Select any result to update the profile.</p>
+          <section class="map-panel">
+            <div class="map-header">
+              <p class="eyebrow">Map View</p>
+              <p class="map-help">Click a list item or a marker to focus that earthquake.</p>
             </div>
-
-            <div id="detail-empty" class="detail-empty">
-              Character image and facts will appear here.
-            </div>
-
-            <div id="detail-content" class="detail-content hidden">
-              <div class="detail-card">
-                <img id="character-image" class="character-image" src="" alt="">
-
-                <div class="detail-copy">
-                  <div class="detail-overline">Selected subject</div>
-                  <div class="detail-title-row">
-                    <div>
-                      <h3 id="character-name" class="character-name"></h3>
-                      <p id="character-tagline" class="character-tagline"></p>
-                    </div>
-                    <span id="status-badge" class="status-badge"></span>
-                  </div>
-
-                  <p id="character-description" class="character-description"></p>
-
-                  <div class="world-strip">
-                    <div class="world-box">
-                      <span class="stat-label">Origin</span>
-                      <span id="character-origin" class="world-value"></span>
-                    </div>
-                    <div class="world-box">
-                      <span class="stat-label">Last location</span>
-                      <span id="character-location" class="world-value"></span>
-                    </div>
-                  </div>
-
-                  <div class="stat-grid">
-                    <div class="stat-box">
-                      <span class="stat-label">Species</span>
-                      <span id="character-species" class="stat-value"></span>
-                    </div>
-                    <div class="stat-box">
-                      <span class="stat-label">Gender</span>
-                      <span id="character-gender" class="stat-value"></span>
-                    </div>
-                    <div class="stat-box">
-                      <span class="stat-label">Episodes</span>
-                      <span id="character-episodes" class="stat-value"></span>
-                    </div>
-                    <div class="stat-box">
-                      <span class="stat-label">Type</span>
-                      <span id="character-type" class="stat-value"></span>
-                    </div>
-                    <div class="stat-box">
-                      <span class="stat-label">Created</span>
-                      <span id="character-created" class="stat-value"></span>
-                    </div>
-                    <div class="stat-box">
-                      <span class="stat-label">API ID</span>
-                      <span id="character-id" class="stat-value"></span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
+            <div id="map" class="map-canvas" aria-label="World map of earthquake locations"></div>
           </section>
         </section>
       </main>
-
-      <footer class="site-footer">
-        <div>
-          <p class="footer-name">Jose Caicedo</p>
-          <p class="footer-class">CST336 • HW 3</p>
-        </div>
-        <img class="footer-logo" src="img/csumb.png" alt="CSUMB logo">
-      </footer>
     </div>
 
+    <script
+      src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+      integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+      crossorigin=""></script>
     <script src="js/app.js"></script>
   </body>
 </html>

@@ -23,7 +23,7 @@ const characterEpisodes = document.getElementById("character-episodes");
 const characterType = document.getElementById("character-type");
 const characterCreated = document.getElementById("character-created");
 const characterId = document.getElementById("character-id");
-const fallbackPortrait = "img/Rick_and_Morty_-_logo_%28English%29-2.webp";
+const fallbackPortrait = "img/rick-and-morty-logo.webp";
 
 let currentCharacters = [];
 const nameFilters = new Map();

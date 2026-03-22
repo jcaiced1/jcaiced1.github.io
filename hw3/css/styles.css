@@ -29,7 +29,7 @@ body {
 button,
 select,
 .character-item {
-  cursor: url("../img/Rick and Morty Pickle Rick Animated--cursor--SweezyCursors..ani"), pointer;
+  cursor: url("../img/Rick and Morty Pickle Rick Animated--pointer--SweezyCursors..cur"), pointer;
 }
 
 .background-video,

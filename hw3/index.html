@@ -7,16 +7,22 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link
-      href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=Manrope:wght@400;500;700;800&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;700;800&family=New+Rocker&family=Space+Grotesk:wght@400;500;700&display=swap"
       rel="stylesheet">
     <link
       rel="stylesheet"
       href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
       integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
       crossorigin="">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
     <link rel="stylesheet" href="css/styles.css">
   </head>
   <body>
+    <video class="page-video" autoplay muted loop playsinline aria-hidden="true">
+      <source src="assets/sky-of-stars-moewalls-com.mp4" type="video/mp4">
+    </video>
+    <div class="page-overlay" aria-hidden="true"></div>
+
     <div class="page-shell">
       <main class="layout">
         <section class="hero">
@@ -24,32 +30,46 @@
             <p class="eyebrow">CST336 Homework 3</p>
             <h1>Earthquake Explorer</h1>
             <p class="hero-copy">
-              This page retrieves earthquake data from the USGS Earthquake Catalog Web API based on
-              a user-selected date range and minimum magnitude. It uses form validation, an event
-              listener, and <code>fetch()</code> to plot earthquakes on a world map and list them
-              in a user-friendly panel.
+              Explore earthquake activity from the USGS Earthquake Catalog by date range and minimum
+              magnitude. The page validates user input, uses an event listener and <code>fetch()</code>,
+              and maps every matching earthquake on an interactive world view.
             </p>
           </div>
 
-          <div class="api-note">
-            <span>API used:</span>
+          <div class="hero-side">
+            <p class="hero-kicker">USGS Earthquake Catalog API</p>
             <a href="https://earthquake.usgs.gov/fdsnws/event/1/" target="_blank" rel="noreferrer">
-              USGS Earthquake Catalog API
+              Open API documentation
             </a>
           </div>
         </section>
 
         <section class="search-panel">
+          <div class="search-panel-header">
+            <div>
+              <p class="eyebrow">Search Controls</p>
+              <h2>Filter the Catalog</h2>
+            </div>
+            <p class="search-hint">Try the last 14 days at magnitude 4.5+ to start.</p>
+          </div>
+
+          <div class="range-presets" aria-label="Quick date presets">
+            <button type="button" class="preset-chip" data-range-days="1">Past 24 Hours</button>
+            <button type="button" class="preset-chip" data-range-days="7">Past 7 Days</button>
+            <button type="button" class="preset-chip" data-range-days="14">Past 14 Days</button>
+            <button type="button" class="preset-chip" data-range-days="30">Past 30 Days</button>
+          </div>
+
           <form id="search-form" novalidate>
             <div class="field-grid">
               <label class="field">
                 <span>Start date</span>
-                <input type="date" id="start-date" name="start-date" required>
+                <input type="text" id="start-date" name="start-date" placeholder="Select a start date" autocomplete="off" required>
               </label>
 
               <label class="field">
                 <span>End date</span>
-                <input type="date" id="end-date" name="end-date" required>
+                <input type="text" id="end-date" name="end-date" placeholder="Select an end date" autocomplete="off" required>
               </label>
 
               <label class="field">
@@ -80,7 +100,7 @@
             </div>
 
             <div id="empty-state" class="status-card">
-              Search for earthquakes to see points on the world map and matching entries in the list.
+              Search for earthquakes to see every matching event plotted on the map and paged in the list.
             </div>
 
             <div id="results-list" class="results-list" aria-live="polite"></div>
@@ -95,7 +115,7 @@
           <section class="map-panel">
             <div class="map-header">
               <p class="eyebrow">Map View</p>
-              <p class="map-help">Click a list item or a marker to focus that earthquake.</p>
+              <p class="map-help">Select a list item or marker to highlight that earthquake on the map.</p>
             </div>
             <div id="map" class="map-canvas" aria-label="World map of earthquake locations"></div>
           </section>
@@ -107,6 +127,7 @@
       src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
       integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
       crossorigin=""></script>
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
     <script src="js/app.js"></script>
   </body>
 </html>

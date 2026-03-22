@@ -12,21 +12,36 @@ const pagination = document.getElementById("results-pagination");
 const prevPageButton = document.getElementById("prev-page");
 const nextPageButton = document.getElementById("next-page");
 const pageIndicator = document.getElementById("page-indicator");
+const presetButtons = [...document.querySelectorAll(".preset-chip")];
 
 const oneDayMs = 24 * 60 * 60 * 1000;
 const defaultEndDate = new Date();
 const defaultStartDate = new Date(defaultEndDate.getTime() - (14 * oneDayMs));
 const itemsPerPage = 6;
+const batchLimit = 2000;
 
 let map;
 let markerLayer;
 let activeFeatureId = "";
-const featureIndex = new Map();
 let allFeatures = [];
 let currentPage = 1;
+let activeQuery = null;
+let startPicker = null;
+let endPicker = null;
+
+const featureIndex = new Map();
 
 function formatDateInput(date) {
   return date.toISOString().split("T")[0];
+}
+
+function parseDateValue(value) {
+  const date = new Date(`${value}T00:00:00`);
+  return Number.isNaN(date.getTime()) ? null : date;
+}
+
+function isValidDateValue(value) {
+  return /^\d{4}-\d{2}-\d{2}$/.test(value) && Boolean(parseDateValue(value));
 }
 
 function formatEventTime(timestamp) {
@@ -67,7 +82,27 @@ function getMagnitudeColor(magnitude) {
 }
 
 function getMarkerRadius(magnitude) {
-  return Math.max(6, Math.min(20, (magnitude || 0) * 2.2));
+  return Math.max(4, Math.min(15, (magnitude || 0) * 1.8));
+}
+
+function buildSearchParams(startDate, endDate, minMagnitude) {
+  const params = new URLSearchParams();
+  params.set("format", "geojson");
+  params.set("starttime", startDate);
+  params.set("endtime", endDate);
+  params.set("minmagnitude", String(minMagnitude));
+  params.set("orderby", "time");
+  params.set("eventtype", "earthquake");
+  return params;
+}
+
+function getPageForFeature(featureId) {
+  const index = allFeatures.findIndex((feature) => feature.id === featureId);
+  if (index === -1) {
+    return 1;
+  }
+
+  return Math.floor(index / itemsPerPage) + 1;
 }
 
 function clearResults() {
@@ -76,6 +111,7 @@ function clearResults() {
   activeFeatureId = "";
   allFeatures = [];
   currentPage = 1;
+  activeQuery = null;
   pagination.classList.add("hidden");
 
   if (markerLayer) {
@@ -83,13 +119,58 @@ function clearResults() {
   }
 }
 
+function syncDateBounds() {
+  const today = formatDateInput(defaultEndDate);
+
+  startDateInput.max = endDateInput.value || today;
+  endDateInput.min = startDateInput.value || "";
+  endDateInput.max = today;
+
+  if (startPicker) {
+    startPicker.set("maxDate", endDateInput.value || today);
+  }
+
+  if (endPicker) {
+    endPicker.set("minDate", startDateInput.value || null);
+    endPicker.set("maxDate", today);
+  }
+}
+
+function setPresetState(days) {
+  presetButtons.forEach((button) => {
+    button.classList.toggle("active", Number(button.dataset.rangeDays) === days);
+  });
+}
+
+function applyDateRange(days) {
+  const endDate = new Date();
+  const startDate = new Date(endDate.getTime() - ((days - 1) * oneDayMs));
+  const formattedStartDate = formatDateInput(startDate);
+  const formattedEndDate = formatDateInput(endDate);
+
+  if (startPicker) {
+    startPicker.setDate(formattedStartDate, true);
+  } else {
+    startDateInput.value = formattedStartDate;
+  }
+
+  if (endPicker) {
+    endPicker.setDate(formattedEndDate, true);
+  } else {
+    endDateInput.value = formattedEndDate;
+  }
+
+  syncDateBounds();
+  setPresetState(days);
+}
+
 function validateForm() {
-  const startDate = startDateInput.value;
-  const endDate = endDateInput.value;
+  const startDate = startDateInput.value.trim();
+  const endDate = endDateInput.value.trim();
   const minMagnitude = Number(minMagnitudeInput.value);
 
-  if (!startDate || !endDate || Number.isNaN(minMagnitudeInput.valueAsNumber)) {
-    return "Please complete all form fields.";
+  if (!isValidDateValue(startDate) || !isValidDateValue(endDate) || Number.isNaN(minMagnitudeInput.valueAsNumber)) {
+    return "Please complete all form fields with valid values.";
   }
 
   if (minMagnitude < 0 || minMagnitude > 10) {
@@ -100,7 +181,7 @@ function validateForm() {
     return "Start date must be earlier than or equal to the end date.";
   }
 
-  const rangeDays = (new Date(endDate) - new Date(startDate)) / oneDayMs;
+  const rangeDays = (parseDateValue(endDate) - parseDateValue(startDate)) / oneDayMs;
   if (rangeDays > 365) {
     return "Please keep the search range to 365 days or less.";
   }
@@ -119,25 +200,26 @@ function buildPopup(feature) {
   `;
 }
 
-function setActiveFeature(featureId, shouldPan = false) {
+function setActiveFeature(featureId) {
   activeFeatureId = featureId;
 
   featureIndex.forEach(({ item, marker, feature }) => {
     const isActive = feature.id === featureId;
+
     if (item) {
       item.classList.toggle("active", isActive);
     }
 
     marker.setStyle({
+      radius: isActive ? getMarkerRadius(feature.properties.mag) + 2 : getMarkerRadius(feature.properties.mag),
       weight: isActive ? 3 : 1.5,
-      fillOpacity: isActive ? 0.95 : 0.82,
+      fillOpacity: isActive ? 0.98 : 0.82,
     });
 
     if (isActive) {
       if (item) {
         item.scrollIntoView({ block: "nearest", behavior: "smooth" });
       }
-
       marker.openPopup();
     }
   });
@@ -171,25 +253,26 @@ function buildListItem(feature) {
       return;
     }
 
-    setActiveFeature(feature.id, true);
+    setActiveFeature(feature.id);
   });
+
   item.addEventListener("keydown", (event) => {
     if (event.key === "Enter" || event.key === " ") {
       event.preventDefault();
-      setActiveFeature(feature.id, true);
+      setActiveFeature(feature.id);
     }
   });
 
   return item;
 }
 
-function addFeatureToMap(feature, item) {
+function addFeatureToMap(feature) {
   const [longitude, latitude] = feature.geometry.coordinates;
   const magnitude = feature.properties.mag || 0;
 
   const marker = L.circleMarker([latitude, longitude], {
     radius: getMarkerRadius(magnitude),
-    color: "#ffffff",
+    color: "#fff5e6",
     weight: 1.5,
     fillColor: getMagnitudeColor(magnitude),
     fillOpacity: 0.82,
@@ -197,20 +280,42 @@ function addFeatureToMap(feature, item) {
 
   marker.bindPopup(buildPopup(feature));
   marker.addTo(markerLayer);
-
   marker.on("click", () => {
-    setActiveFeature(feature.id, false);
+    const targetPage = getPageForFeature(feature.id);
+    if (targetPage !== currentPage) {
+      renderPage(targetPage);
+    }
+    setActiveFeature(feature.id);
   });
 
-  featureIndex.set(feature.id, { feature, item, marker });
+  featureIndex.set(feature.id, { feature, item: null, marker });
+}
+
+function updateResultsSummary() {
+  if (!activeQuery) {
+    resultsSummary.textContent = "Run a search to populate the map and list.";
+    return;
+  }
+
+  if (!allFeatures.length) {
+    resultsSummary.textContent = `No earthquakes matched ${activeQuery.startDate} to ${activeQuery.endDate} at magnitude ${activeQuery.minMagnitude}+`;
+    pageIndicator.textContent = "Page 1 of 1";
+    return;
+  }
+
+  const totalPages = Math.max(1, Math.ceil(allFeatures.length / itemsPerPage));
+  const firstItem = ((currentPage - 1) * itemsPerPage) + 1;
+  const lastItem = Math.min(currentPage * itemsPerPage, allFeatures.length);
+  resultsSummary.textContent = `Showing ${firstItem}-${lastItem} of ${allFeatures.length} earthquakes from ${activeQuery.startDate} to ${activeQuery.endDate} at magnitude ${activeQuery.minMagnitude}+`;
+  pageIndicator.textContent = `Page ${currentPage} of ${totalPages}`;
 }
 
 function updatePagination() {
   const totalPages = Math.max(1, Math.ceil(allFeatures.length / itemsPerPage));
-  pageIndicator.textContent = `Page ${currentPage} of ${totalPages}`;
   prevPageButton.disabled = currentPage === 1;
   nextPageButton.disabled = currentPage === totalPages;
   pagination.classList.toggle("hidden", allFeatures.length <= itemsPerPage);
+  updateResultsSummary();
 }
 
 function renderPage(pageNumber) {
@@ -232,25 +337,24 @@ function renderPage(pageNumber) {
       return;
     }
 
-    entry.item = buildListItem(feature);
-    resultsList.appendChild(entry.item);
+    const item = buildListItem(feature);
+    entry.item = item;
+    resultsList.appendChild(item);
   });
 
   featureIndex.forEach((entry) => {
-    const item = resultsList.querySelector(`[data-feature-id="${entry.feature.id}"]`);
-    if (item) {
-      entry.item = item;
-      item.classList.toggle("active", entry.feature.id === activeFeatureId);
-    } else {
-      entry.item = null;
+    if (!entry.item) {
+      return;
     }
+
+    entry.item.classList.toggle("active", entry.feature.id === activeFeatureId);
   });
 
   updatePagination();
 
   const pageHasActiveFeature = pageFeatures.some((feature) => feature.id === activeFeatureId);
   if (!pageHasActiveFeature && pageFeatures.length) {
-    setActiveFeature(pageFeatures[0].id, false);
+    setActiveFeature(pageFeatures[0].id);
   }
 }
 
@@ -258,32 +362,33 @@ function renderMap(features) {
   const bounds = [];
 
   features.forEach((feature) => {
-    addFeatureToMap(feature, null);
+    addFeatureToMap(feature);
     const [longitude, latitude] = feature.geometry.coordinates;
     bounds.push([latitude, longitude]);
   });
 
-  if (bounds.length === 1) {
-    if (map) {
-      map.setView(bounds[0], 2);
-    }
+  if (!map || !bounds.length) {
     return;
   }
 
-  if (map) {
-    map.fitBounds(bounds, {
-      padding: [30, 30],
-      maxZoom: 2,
-    });
+  if (bounds.length === 1) {
+    map.setView(bounds[0], 2);
+    return;
   }
+
+  map.fitBounds(bounds, {
+    padding: [30, 30],
+    maxZoom: 2,
+  });
 }
 
-function renderResults(features, startDate, endDate, minMagnitude) {
+function renderResults(features, queryDetails) {
   clearResults();
+  activeQuery = queryDetails;
 
   if (!features.length) {
     emptyState.classList.remove("hidden");
-    resultsSummary.textContent = `No earthquakes matched ${startDate} to ${endDate} at magnitude ${minMagnitude}+`;
+    updateResultsSummary();
     if (map) {
       map.setView([20, 0], 2);
     }
@@ -291,28 +396,61 @@ function renderResults(features, startDate, endDate, minMagnitude) {
   }
 
   emptyState.classList.add("hidden");
-  resultsSummary.textContent = `Showing ${features.length} earthquakes from ${startDate} to ${endDate} with magnitude ${minMagnitude}+`;
   allFeatures = features;
   renderMap(features);
   renderPage(1);
-  setActiveFeature(features[0].id, false);
+  setActiveFeature(features[0].id);
 }
 
-async function fetchEarthquakes(startDate, endDate, minMagnitude) {
+async function fetchEarthquakeCount(startDate, endDate, minMagnitude) {
+  const endpoint = new URL("https://earthquake.usgs.gov/fdsnws/event/1/count");
+  const params = buildSearchParams(startDate, endDate, minMagnitude);
+  params.set("format", "geojson");
+  endpoint.search = params.toString();
+  const response = await fetch(endpoint);
+
+  if (!response.ok) {
+    throw new Error(`USGS count request failed with status ${response.status}.`);
+  }
+
+  const data = await response.json();
+  return Number(data.count || 0);
+}
+
+async function fetchEarthquakeBatch(startDate, endDate, minMagnitude, offset, limit) {
   const endpoint = new URL("https://earthquake.usgs.gov/fdsnws/event/1/query");
-  endpoint.searchParams.set("format", "geojson");
-  endpoint.searchParams.set("starttime", startDate);
-  endpoint.searchParams.set("endtime", endDate);
-  endpoint.searchParams.set("minmagnitude", String(minMagnitude));
-  endpoint.searchParams.set("orderby", "time");
-  endpoint.searchParams.set("limit", "30");
+  const params = buildSearchParams(startDate, endDate, minMagnitude);
+  params.set("offset", String(offset));
+  params.set("limit", String(limit));
+  endpoint.search = params.toString();
 
   const response = await fetch(endpoint);
+
   if (!response.ok) {
-    throw new Error(`USGS request failed with status ${response.status}.`);
+    throw new Error(`USGS data request failed with status ${response.status}.`);
   }
 
   return response.json();
+}
+
+async function fetchAllEarthquakes(startDate, endDate, minMagnitude) {
+  const totalCount = await fetchEarthquakeCount(startDate, endDate, minMagnitude);
+
+  if (!totalCount) {
+    return [];
+  }
+
+  const features = [];
+
+  for (let offset = 1; offset <= totalCount; offset += batchLimit) {
+    const currentLimit = Math.min(batchLimit, totalCount - features.length);
+    setMessage(`Fetching earthquake data... ${features.length}/${totalCount}`, "success");
+
+    const batch = await fetchEarthquakeBatch(startDate, endDate, minMagnitude, offset, currentLimit);
+    features.push(...(batch.features || []));
+  }
+
+  return features;
 }
 
 async function handleSearch(event) {
@@ -324,28 +462,25 @@ async function handleSearch(event) {
     return;
   }
 
-  const startDate = startDateInput.value;
-  const endDate = endDateInput.value;
+  const startDate = startDateInput.value.trim();
+  const endDate = endDateInput.value.trim();
   const minMagnitude = Number(minMagnitudeInput.value).toFixed(1);
 
-  setMessage("Fetching earthquake data...", "success");
   toggleLoading(true);
-  emptyState.classList.add("hidden");
-  clearResults();
+  setMessage("Fetching earthquake data...", "success");
 
   try {
-    const data = await fetchEarthquakes(startDate, endDate, minMagnitude);
-    const features = data.features || [];
-    renderResults(features, startDate, endDate, minMagnitude);
+    const features = await fetchAllEarthquakes(startDate, endDate, minMagnitude);
+    renderResults(features, { startDate, endDate, minMagnitude });
     setMessage(`Loaded ${features.length} earthquake records.`, "success");
   } catch (error) {
-    clearResults();
-    emptyState.classList.remove("hidden");
-    resultsSummary.textContent = "Unable to load earthquake data right now.";
-    setMessage(error.message, "error");
-    if (map) {
-      map.setView([20, 0], 2);
+    if (!allFeatures.length) {
+      clearResults();
+      emptyState.classList.remove("hidden");
+      updateResultsSummary();
     }
+
+    setMessage(error.message, "error");
   } finally {
     toggleLoading(false);
   }
@@ -370,17 +505,70 @@ function initMap() {
   markerLayer = L.layerGroup().addTo(map);
 }
 
+function initDatePickers() {
+  const today = formatDateInput(defaultEndDate);
+
+  if (typeof flatpickr !== "undefined") {
+    startPicker = flatpickr(startDateInput, {
+      altInput: true,
+      altFormat: "F j, Y",
+      dateFormat: "Y-m-d",
+      defaultDate: formatDateInput(defaultStartDate),
+      maxDate: today,
+      onChange: () => {
+        syncDateBounds();
+        setPresetState(0);
+      },
+    });
+
+    endPicker = flatpickr(endDateInput, {
+      altInput: true,
+      altFormat: "F j, Y",
+      dateFormat: "Y-m-d",
+      defaultDate: formatDateInput(defaultEndDate),
+      maxDate: today,
+      onChange: () => {
+        syncDateBounds();
+        setPresetState(0);
+      },
+    });
+  } else {
+    startDateInput.value = formatDateInput(defaultStartDate);
+    endDateInput.value = formatDateInput(defaultEndDate);
+  }
+
+  syncDateBounds();
+}
+
 function initDefaults() {
-  endDateInput.value = formatDateInput(defaultEndDate);
-  startDateInput.value = formatDateInput(defaultStartDate);
+  initDatePickers();
+  applyDateRange(14);
 }
 
 initMap();
 initDefaults();
+updateResultsSummary();
+
 searchForm.addEventListener("submit", handleSearch);
 prevPageButton.addEventListener("click", () => {
   renderPage(currentPage - 1);
 });
 nextPageButton.addEventListener("click", () => {
   renderPage(currentPage + 1);
+});
+
+startDateInput.addEventListener("change", () => {
+  syncDateBounds();
+  setPresetState(0);
+});
+
+endDateInput.addEventListener("change", () => {
+  syncDateBounds();
+  setPresetState(0);
+});
+
+presetButtons.forEach((button) => {
+  button.addEventListener("click", () => {
+    applyDateRange(Number(button.dataset.rangeDays));
+  });
 });

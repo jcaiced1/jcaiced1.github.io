@@ -24,6 +24,7 @@ const characterType = document.getElementById("character-type");
 const characterCreated = document.getElementById("character-created");
 const characterId = document.getElementById("character-id");
 const fallbackPortrait = "img/rick-and-morty-logo.webp";
+const imageRequestCache = new Map();
 
 let currentCharacters = [];
 const nameFilters = new Map();
@@ -84,6 +85,58 @@ function buildDescription(character) {
   const typeText = character.type ? ` with the subtype ${character.type}` : "";
   const statusText = status === "alive" ? "is alive" : status === "dead" ? "is dead" : "has an unknown status";
   return `${character.name} ${statusText} and is a ${species}${typeText}. ${character.name} comes from ${character.origin.name}, was last seen in ${character.location.name}, and appears in ${character.episode.length} episode${character.episode.length === 1 ? "" : "s"}.`;
+}
+
+function resolveImageSource(url, attempts = 2, delayMs = 1200) {
+  if (!url) {
+    return Promise.resolve(fallbackPortrait);
+  }
+
+  if (imageRequestCache.has(url)) {
+    return imageRequestCache.get(url);
+  }
+
+  const request = new Promise((resolve) => {
+    let attemptCount = 0;
+
+    function tryLoad() {
+      const probe = new Image();
+      probe.decoding = "async";
+
+      probe.onload = () => {
+        resolve(url);
+      };
+
+      probe.onerror = () => {
+        if (attemptCount < attempts) {
+          attemptCount += 1;
+          window.setTimeout(tryLoad, delayMs * attemptCount);
+          return;
+        }
+
+        resolve(fallbackPortrait);
+      };
+
+      probe.src = url;
+    }
+
+    tryLoad();
+  });
+
+  imageRequestCache.set(url, request);
+  return request;
+}
+
+async function assignResolvedImage(element, url, altText, fallbackAltText) {
+  element.dataset.requestedSrc = url;
+  const resolvedSrc = await resolveImageSource(url);
+
+  if (element.dataset.requestedSrc !== url) {
+    return;
+  }
+
+  element.src = resolvedSrc;
+  element.alt = resolvedSrc === fallbackPortrait ? fallbackAltText : altText;
 }
 
 function populateSelect(select, values, placeholder, selectedValue = "") {
@@ -222,13 +275,14 @@ function renderCharacterDetail(character) {
   detailEmpty.classList.add("hidden");
   detailContent.classList.remove("hidden");
 
-  characterImage.src = character.image;
-  characterImage.alt = `${character.name} portrait`;
-  characterImage.onerror = () => {
-    characterImage.onerror = null;
-    characterImage.src = fallbackPortrait;
-    characterImage.alt = `${character.name} fallback portrait`;
-  };
+  characterImage.src = fallbackPortrait;
+  characterImage.alt = `${character.name} portrait loading`;
+  assignResolvedImage(
+    characterImage,
+    character.image,
+    `${character.name} portrait`,
+    `${character.name} fallback portrait`
+  );
   detailName.textContent = character.name;
   characterTagline.textContent = `${character.status} ${character.species}${character.type ? ` • ${character.type}` : ""}`;
   characterDescription.textContent = buildDescription(character);
@@ -260,11 +314,14 @@ function buildCharacterItem(character) {
   `;
 
   const thumb = item.querySelector(".character-thumb");
-  thumb.onerror = () => {
-    thumb.onerror = null;
-    thumb.src = fallbackPortrait;
-    thumb.alt = `${character.name} fallback portrait`;
-  };
+  thumb.src = fallbackPortrait;
+  thumb.alt = `${character.name} portrait loading`;
+  assignResolvedImage(
+    thumb,
+    character.image,
+    `${character.name} portrait`,
+    `${character.name} fallback portrait`
+  );
 
   const activate = () => {
     setActiveCharacter(character.id);

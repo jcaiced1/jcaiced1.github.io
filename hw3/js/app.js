@@ -268,16 +268,16 @@ function updateDependentFilters(selectedName, preferredStatus = "", preferredSpe
 function setActiveCharacter(characterIdValue) {
   currentCharacters.forEach((character) => {
     const item = document.querySelector(`[data-character-id="${character.id}"]`);
-    if (!item) {
-      return;
-    }
-
     const isActive = character.id === characterIdValue;
-    item.classList.toggle("active", isActive);
+    if (item) {
+      item.classList.toggle("active", isActive);
+    }
 
     if (isActive) {
       renderCharacterDetail(character);
-      item.scrollIntoView({ block: "nearest", behavior: "smooth" });
+      if (item) {
+        item.scrollIntoView({ block: "nearest", behavior: "smooth" });
+      }
     }
   });
 }

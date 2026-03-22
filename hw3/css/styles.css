@@ -23,7 +23,7 @@ body {
   font-family: "Manrope", sans-serif;
   color: var(--text);
   background: #061017;
-  cursor: auto;
+  cursor: url("../img/Rick and Morty Pickle Rick Animated--pointer--SweezyCursors..cur"), auto;
 }
 
 button,
@@ -118,13 +118,14 @@ select,
 
 .hero-copy-block {
   max-width: min(12ch, 100%);
+  justify-self: center;
 }
 
 .series-logo {
   display: block;
   width: min(540px, 88vw);
   height: auto;
-  margin: 0 0 8px -6px;
+  margin: 0 auto 8px;
   filter: drop-shadow(0 10px 28px rgba(0, 0, 0, 0.34));
 }
 
@@ -176,6 +177,7 @@ h1 {
   letter-spacing: -0.05em;
   text-shadow: 0 6px 24px rgba(0, 0, 0, 0.28);
   max-width: 10ch;
+  text-align: center;
 }
 
 h2 {
@@ -666,7 +668,8 @@ button:disabled {
   }
 
   .series-logo {
-    margin-left: 0;
+    margin-left: auto;
+    margin-right: auto;
   }
 
   .results-sidebar::before {

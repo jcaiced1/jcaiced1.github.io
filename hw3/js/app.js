@@ -8,15 +8,22 @@ const loadingState = document.getElementById("loading-state");
 const emptyState = document.getElementById("empty-state");
 const resultsList = document.getElementById("results-list");
 const resultsSummary = document.getElementById("results-summary");
+const pagination = document.getElementById("results-pagination");
+const prevPageButton = document.getElementById("prev-page");
+const nextPageButton = document.getElementById("next-page");
+const pageIndicator = document.getElementById("page-indicator");
 
 const oneDayMs = 24 * 60 * 60 * 1000;
 const defaultEndDate = new Date();
 const defaultStartDate = new Date(defaultEndDate.getTime() - (14 * oneDayMs));
+const itemsPerPage = 6;
 
 let map;
 let markerLayer;
 let activeFeatureId = "";
 const featureIndex = new Map();
+let allFeatures = [];
+let currentPage = 1;
 
 function formatDateInput(date) {
   return date.toISOString().split("T")[0];
@@ -67,6 +74,9 @@ function clearResults() {
   resultsList.innerHTML = "";
   featureIndex.clear();
   activeFeatureId = "";
+  allFeatures = [];
+  currentPage = 1;
+  pagination.classList.add("hidden");
 
   if (markerLayer) {
     markerLayer.clearLayers();
@@ -114,7 +124,9 @@ function setActiveFeature(featureId, shouldPan = false) {
 
   featureIndex.forEach(({ item, marker, feature }) => {
     const isActive = feature.id === featureId;
-    item.classList.toggle("active", isActive);
+    if (item) {
+      item.classList.toggle("active", isActive);
+    }
 
     marker.setStyle({
       weight: isActive ? 3 : 1.5,
@@ -122,13 +134,8 @@ function setActiveFeature(featureId, shouldPan = false) {
     });
 
     if (isActive) {
-      item.scrollIntoView({ block: "nearest", behavior: "smooth" });
-
-      if (shouldPan && map) {
-        const [longitude, latitude] = feature.geometry.coordinates;
-        map.flyTo([latitude, longitude], Math.max(map.getZoom(), 4), {
-          duration: 0.7,
-        });
+      if (item) {
+        item.scrollIntoView({ block: "nearest", behavior: "smooth" });
       }
 
       marker.openPopup();
@@ -142,6 +149,7 @@ function buildListItem(feature) {
   const item = document.createElement("article");
   item.className = "quake-item";
   item.tabIndex = 0;
+  item.dataset.featureId = feature.id;
   item.innerHTML = `
     <div class="quake-topline">
       <div>
@@ -197,6 +205,79 @@ function addFeatureToMap(feature, item) {
   featureIndex.set(feature.id, { feature, item, marker });
 }
 
+function updatePagination() {
+  const totalPages = Math.max(1, Math.ceil(allFeatures.length / itemsPerPage));
+  pageIndicator.textContent = `Page ${currentPage} of ${totalPages}`;
+  prevPageButton.disabled = currentPage === 1;
+  nextPageButton.disabled = currentPage === totalPages;
+  pagination.classList.toggle("hidden", allFeatures.length <= itemsPerPage);
+}
+
+function renderPage(pageNumber) {
+  resultsList.innerHTML = "";
+
+  if (!allFeatures.length) {
+    updatePagination();
+    return;
+  }
+
+  const totalPages = Math.ceil(allFeatures.length / itemsPerPage);
+  currentPage = Math.min(Math.max(pageNumber, 1), totalPages);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const pageFeatures = allFeatures.slice(startIndex, startIndex + itemsPerPage);
+
+  pageFeatures.forEach((feature) => {
+    const entry = featureIndex.get(feature.id);
+    if (!entry) {
+      return;
+    }
+
+    entry.item = buildListItem(feature);
+    resultsList.appendChild(entry.item);
+  });
+
+  featureIndex.forEach((entry) => {
+    const item = resultsList.querySelector(`[data-feature-id="${entry.feature.id}"]`);
+    if (item) {
+      entry.item = item;
+      item.classList.toggle("active", entry.feature.id === activeFeatureId);
+    } else {
+      entry.item = null;
+    }
+  });
+
+  updatePagination();
+
+  const pageHasActiveFeature = pageFeatures.some((feature) => feature.id === activeFeatureId);
+  if (!pageHasActiveFeature && pageFeatures.length) {
+    setActiveFeature(pageFeatures[0].id, false);
+  }
+}
+
+function renderMap(features) {
+  const bounds = [];
+
+  features.forEach((feature) => {
+    addFeatureToMap(feature, null);
+    const [longitude, latitude] = feature.geometry.coordinates;
+    bounds.push([latitude, longitude]);
+  });
+
+  if (bounds.length === 1) {
+    if (map) {
+      map.setView(bounds[0], 2);
+    }
+    return;
+  }
+
+  if (map) {
+    map.fitBounds(bounds, {
+      padding: [30, 30],
+      maxZoom: 2,
+    });
+  }
+}
+
 function renderResults(features, startDate, endDate, minMagnitude) {
   clearResults();
 
@@ -211,26 +292,9 @@ function renderResults(features, startDate, endDate, minMagnitude) {
 
   emptyState.classList.add("hidden");
   resultsSummary.textContent = `Showing ${features.length} earthquakes from ${startDate} to ${endDate} with magnitude ${minMagnitude}+`;
-
-  const bounds = [];
-
-  features.forEach((feature) => {
-    const item = buildListItem(feature);
-    resultsList.appendChild(item);
-    addFeatureToMap(feature, item);
-
-    const [longitude, latitude] = feature.geometry.coordinates;
-    bounds.push([latitude, longitude]);
-  });
-
-  if (bounds.length === 1) {
-    if (map) {
-      map.setView(bounds[0], 4);
-    }
-  } else if (map) {
-    map.fitBounds(bounds, { padding: [40, 40] });
-  }
-
+  allFeatures = features;
+  renderMap(features);
+  renderPage(1);
   setActiveFeature(features[0].id, false);
 }
 
@@ -314,3 +378,9 @@ function initDefaults() {
 initMap();
 initDefaults();
 searchForm.addEventListener("submit", handleSearch);
+prevPageButton.addEventListener("click", () => {
+  renderPage(currentPage - 1);
+});
+nextPageButton.addEventListener("click", () => {
+  renderPage(currentPage + 1);
+});

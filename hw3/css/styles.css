@@ -640,6 +640,14 @@ button:disabled {
     flex-wrap: wrap;
   }
 
+  .field-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .field:last-child {
+    grid-column: auto;
+  }
+
   button {
     width: 100%;
   }

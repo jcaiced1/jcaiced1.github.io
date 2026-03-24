@@ -519,15 +519,22 @@ button:disabled {
   border-radius: 16px;
 }
 
+.leaflet-popup-content {
+  margin: 12px 14px;
+  max-width: 220px;
+}
+
 .popup-title {
   margin: 0 0 8px;
-  font-size: 1rem;
+  font-size: 0.88rem;
   font-weight: 700;
+  line-height: 1.35;
 }
 
 .popup-copy {
   margin: 0;
   color: #60748f;
+  font-size: 0.82rem;
 }
 
 .flatpickr-calendar {

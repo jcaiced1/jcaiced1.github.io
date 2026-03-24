@@ -13,6 +13,7 @@ const prevPageButton = document.getElementById("prev-page");
 const nextPageButton = document.getElementById("next-page");
 const pageIndicator = document.getElementById("page-indicator");
 const presetButtons = [...document.querySelectorAll(".preset-chip")];
+const liveCard = document.getElementById("live-card");
 const liveHeading = document.getElementById("live-heading");
 const liveDetail = document.getElementById("live-detail");
 
@@ -31,6 +32,8 @@ let currentPage = 1;
 let activeQuery = null;
 let startPicker = null;
 let endPicker = null;
+let liveFeature = null;
+let liveMarker = null;
 
 const featureIndex = new Map();
 
@@ -387,6 +390,10 @@ function renderMap(features) {
     padding: [30, 30],
     maxZoom: 2,
   });
+
+  if (liveFeature) {
+    attachLiveMarker();
+  }
 }
 
 function renderResults(features, queryDetails) {
@@ -487,18 +494,70 @@ async function refreshLiveEarthquake() {
     const latest = await fetchLatestEarthquake();
 
     if (!latest) {
+      liveFeature = null;
+      if (liveMarker && map) {
+        map.removeLayer(liveMarker);
+        liveMarker = null;
+      }
       liveHeading.textContent = "No earthquake reported in the last hour";
       liveDetail.textContent = "This live block checks the most recent USGS event from the past hour.";
       return;
     }
 
+    liveFeature = latest;
     const magnitude = formatMagnitude(latest.properties.mag);
     const location = latest.properties.place || "Unknown location";
     liveHeading.textContent = `M ${magnitude} • ${location}`;
     liveDetail.textContent = `${formatEventTime(latest.properties.time)} • latest event reported within the last hour`;
+    attachLiveMarker();
   } catch (error) {
     liveHeading.textContent = "Live feed unavailable right now";
     liveDetail.textContent = error.message;
+  }
+}
+
+function attachLiveMarker() {
+  if (!map || !liveFeature) {
+    return;
+  }
+
+  if (liveMarker) {
+    map.removeLayer(liveMarker);
+  }
+
+  const [longitude, latitude] = liveFeature.geometry.coordinates;
+  const magnitude = liveFeature.properties.mag || 0;
+
+  liveMarker = L.circleMarker([latitude, longitude], {
+    radius: getMarkerRadius(magnitude) + 3,
+    color: "#fff7e8",
+    weight: 3,
+    fillColor: "#ff7a18",
+    fillOpacity: 0.95,
+  });
+
+  liveMarker.bindPopup(buildPopup(liveFeature));
+  liveMarker.addTo(map);
+}
+
+function focusLiveEarthquake() {
+  if (!liveFeature || !map) {
+    return;
+  }
+
+  const targetPage = getPageForFeature(liveFeature.id);
+  if (featureIndex.has(liveFeature.id) && targetPage !== currentPage) {
+    renderPage(targetPage);
+  }
+
+  if (featureIndex.has(liveFeature.id)) {
+    setActiveFeature(liveFeature.id);
+  } else if (liveMarker) {
+    const [longitude, latitude] = liveFeature.geometry.coordinates;
+    map.flyTo([latitude, longitude], Math.max(map.getZoom(), 3), {
+      duration: 0.7,
+    });
+    liveMarker.openPopup();
   }
 }
 
@@ -622,5 +681,7 @@ presetButtons.forEach((button) => {
     applyDateRange(Number(button.dataset.rangeDays));
   });
 });
+
+liveCard.addEventListener("click", focusLiveEarthquake);
 
 window.setInterval(refreshLiveEarthquake, oneHourMs / 60);

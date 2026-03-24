@@ -579,7 +579,13 @@ button:disabled {
 
 @media (max-width: 760px) {
   .page-shell {
-    padding: 10px 10px 16px;
+    padding: 12px 14px 18px;
+  }
+
+  .layout,
+  .dashboard,
+  .sidebar-stack {
+    gap: 12px;
   }
 
   .hero,
@@ -613,7 +619,7 @@ button:disabled {
 
   .map-canvas {
     height: 48vh;
-    margin: 10px;
+    margin: 12px;
   }
 }
 

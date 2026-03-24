@@ -601,19 +601,17 @@ function initMap() {
     return;
   }
 
-  const worldBounds = [[-85, -180], [85, 180]];
+  const latitudeBounds = [[-85, -100000], [85, 100000]];
 
   map = L.map("map", {
     worldCopyJump: true,
     minZoom: 2,
-    maxBounds: worldBounds,
+    maxBounds: latitudeBounds,
     maxBoundsViscosity: 1.0,
   }).setView([20, 0], 2);
 
   L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
     attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
-    noWrap: true,
-    bounds: worldBounds,
   }).addTo(map);
 
   markerLayer = L.layerGroup().addTo(map);

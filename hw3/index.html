@@ -25,79 +25,89 @@
 
     <div class="page-shell">
       <main class="layout">
-        <section class="hero">
+        <header class="hero">
           <div class="hero-copy-block">
             <p class="eyebrow">CST336 Homework 3</p>
             <h1>Earthquake Explorer</h1>
           </div>
-        </section>
 
-        <section class="search-panel">
-          <div class="search-panel-header">
-            <div>
-              <p class="eyebrow">Search Controls</p>
-              <h2>Filter the Catalog</h2>
+          <section class="live-card" aria-live="polite">
+            <p class="live-label">Live</p>
+            <div class="live-copy">
+              <p id="live-heading" class="live-heading">Watching for recent earthquakes...</p>
+              <p id="live-detail" class="live-detail">Pulling the latest event from the USGS catalog.</p>
             </div>
-            <p class="search-hint">Try the last 14 days at magnitude 4.5+ to start.</p>
-          </div>
-
-          <div class="range-presets" aria-label="Quick date presets">
-            <button type="button" class="preset-chip" data-range-days="1">Past 24 Hours</button>
-            <button type="button" class="preset-chip" data-range-days="7">Past 7 Days</button>
-            <button type="button" class="preset-chip" data-range-days="14">Past 14 Days</button>
-            <button type="button" class="preset-chip" data-range-days="30">Past 30 Days</button>
-          </div>
-
-          <form id="search-form" novalidate>
-            <div class="field-grid">
-              <label class="field">
-                <span>Start date</span>
-                <input type="text" id="start-date" name="start-date" placeholder="Select a start date" autocomplete="off" required>
-              </label>
-
-              <label class="field">
-                <span>End date</span>
-                <input type="text" id="end-date" name="end-date" placeholder="Select an end date" autocomplete="off" required>
-              </label>
-
-              <label class="field">
-                <span>Minimum magnitude</span>
-                <input type="number" id="min-magnitude" name="min-magnitude" min="0" max="10" step="0.1" value="4.5" required>
-              </label>
-            </div>
-
-            <div class="controls">
-              <button type="submit" id="search-button">Load Earthquakes</button>
-              <p id="form-message" class="form-message" aria-live="polite"></p>
-            </div>
-          </form>
-        </section>
+          </section>
+        </header>
 
         <section class="dashboard">
-          <aside class="results-sidebar">
-            <div class="sidebar-header">
-              <div>
-                <p class="eyebrow">Results List</p>
-                <h2>Earthquakes</h2>
+          <aside class="sidebar-stack">
+            <section class="search-panel">
+              <div class="search-panel-header">
+                <div>
+                  <p class="eyebrow">Filter Controls</p>
+                  <h2>Search Catalog</h2>
+                </div>
+                <p class="search-hint">Past 14 days at magnitude 4.5+ is a good starting point.</p>
               </div>
-              <p id="results-summary" class="results-summary">Run a search to populate the map and list.</p>
-            </div>
 
-            <div id="loading-state" class="status-card hidden" aria-live="polite">
-              Loading earthquake data...
-            </div>
+              <div class="range-presets" aria-label="Quick date presets">
+                <button type="button" class="preset-chip" data-range-days="1">24 Hours</button>
+                <button type="button" class="preset-chip" data-range-days="7">7 Days</button>
+                <button type="button" class="preset-chip" data-range-days="14">14 Days</button>
+                <button type="button" class="preset-chip" data-range-days="30">30 Days</button>
+              </div>
 
-            <div id="empty-state" class="status-card">
-              Search for earthquakes to see every matching event plotted on the map and paged in the list.
-            </div>
+              <form id="search-form" novalidate>
+                <div class="field-grid">
+                  <label class="field">
+                    <span>Start date</span>
+                    <input type="text" id="start-date" name="start-date" placeholder="Select a start date" autocomplete="off" required>
+                  </label>
 
-            <div id="results-list" class="results-list" aria-live="polite"></div>
+                  <label class="field">
+                    <span>End date</span>
+                    <input type="text" id="end-date" name="end-date" placeholder="Select an end date" autocomplete="off" required>
+                  </label>
 
-            <div id="results-pagination" class="results-pagination hidden" aria-label="Results pagination">
-              <button type="button" id="prev-page" class="pager-button">Previous</button>
-              <p id="page-indicator" class="page-indicator">Page 1 of 1</p>
-              <button type="button" id="next-page" class="pager-button">Next</button>
-            </div>
+                  <label class="field">
+                    <span>Minimum magnitude</span>
+                    <input type="number" id="min-magnitude" name="min-magnitude" min="0" max="10" step="0.1" value="4.5" required>
+                  </label>
+                </div>
+
+                <div class="controls">
+                  <button type="submit" id="search-button">Load Earthquakes</button>
+                  <p id="form-message" class="form-message" aria-live="polite"></p>
+                </div>
+              </form>
+            </section>
+
+            <section class="results-sidebar">
+              <div class="sidebar-header">
+                <div>
+                  <p class="eyebrow">Results List</p>
+                  <h2>Earthquakes</h2>
+                </div>
+                <p id="results-summary" class="results-summary">Run a search to populate the map and list.</p>
+              </div>
+
+              <div id="loading-state" class="status-card hidden" aria-live="polite">
+                Loading earthquake data...
+              </div>
+
+              <div id="empty-state" class="status-card">
+                Search for earthquakes to see every matching event plotted on the map and paged in the list.
+              </div>
+
+              <div id="results-list" class="results-list" aria-live="polite"></div>
+
+              <div id="results-pagination" class="results-pagination hidden" aria-label="Results pagination">
+                <button type="button" id="prev-page" class="pager-button">Previous</button>
+                <p id="page-indicator" class="page-indicator">Page 1 of 1</p>
+                <button type="button" id="next-page" class="pager-button">Next</button>
+              </div>
+            </section>
           </aside>
 
           <section class="map-panel">

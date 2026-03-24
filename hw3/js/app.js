@@ -13,8 +13,11 @@ const prevPageButton = document.getElementById("prev-page");
 const nextPageButton = document.getElementById("next-page");
 const pageIndicator = document.getElementById("page-indicator");
 const presetButtons = [...document.querySelectorAll(".preset-chip")];
+const liveHeading = document.getElementById("live-heading");
+const liveDetail = document.getElementById("live-detail");
 
 const oneDayMs = 24 * 60 * 60 * 1000;
+const oneHourMs = 60 * 60 * 1000;
 const defaultEndDate = new Date();
 const defaultStartDate = new Date(defaultEndDate.getTime() - (14 * oneDayMs));
 const itemsPerPage = 6;
@@ -94,6 +97,10 @@ function buildSearchParams(startDate, endDate, minMagnitude) {
   params.set("orderby", "time");
   params.set("eventtype", "earthquake");
   return params;
+}
+
+function formatMagnitude(value) {
+  return typeof value === "number" ? value.toFixed(1) : "N/A";
 }
 
 function getPageForFeature(featureId) {
@@ -194,7 +201,7 @@ function buildPopup(feature) {
 
   return `
     <div>
-      <p class="popup-title">M ${mag ?? "N/A"} • ${place || "Unknown location"}</p>
+      <p class="popup-title">M ${formatMagnitude(mag)} • ${place || "Unknown location"}</p>
       <p class="popup-copy">${formatEventTime(time)}</p>
     </div>
   `;
@@ -238,7 +245,7 @@ function buildListItem(feature) {
         <h3 class="quake-location">${place || "Unknown location"}</h3>
         <p class="quake-time">${formatEventTime(time)}</p>
       </div>
-      <div class="magnitude-badge">${mag ?? "N/A"}</div>
+      <div class="magnitude-badge">${formatMagnitude(mag)}</div>
     </div>
     <div class="quake-meta-row">
       <span class="quake-meta">Depth ${typeof depth === "number" ? `${depth.toFixed(1)} km` : "N/A"}</span>
@@ -453,6 +460,48 @@ async function fetchAllEarthquakes(startDate, endDate, minMagnitude) {
   return features;
 }
 
+async function fetchLatestEarthquake() {
+  const now = new Date();
+  const oneHourAgo = new Date(now.getTime() - oneHourMs);
+  const endpoint = new URL("https://earthquake.usgs.gov/fdsnws/event/1/query");
+  const params = new URLSearchParams();
+  params.set("format", "geojson");
+  params.set("eventtype", "earthquake");
+  params.set("orderby", "time");
+  params.set("starttime", oneHourAgo.toISOString());
+  params.set("endtime", now.toISOString());
+  params.set("limit", "1");
+  endpoint.search = params.toString();
+
+  const response = await fetch(endpoint);
+  if (!response.ok) {
+    throw new Error(`USGS live request failed with status ${response.status}.`);
+  }
+
+  const data = await response.json();
+  return data.features?.[0] || null;
+}
+
+async function refreshLiveEarthquake() {
+  try {
+    const latest = await fetchLatestEarthquake();
+
+    if (!latest) {
+      liveHeading.textContent = "No earthquake reported in the last hour";
+      liveDetail.textContent = "This live block checks the most recent USGS event from the past hour.";
+      return;
+    }
+
+    const magnitude = formatMagnitude(latest.properties.mag);
+    const location = latest.properties.place || "Unknown location";
+    liveHeading.textContent = `M ${magnitude} • ${location}`;
+    liveDetail.textContent = `${formatEventTime(latest.properties.time)} • latest event reported within the last hour`;
+  } catch (error) {
+    liveHeading.textContent = "Live feed unavailable right now";
+    liveDetail.textContent = error.message;
+  }
+}
+
 async function handleSearch(event) {
   event.preventDefault();
 
@@ -548,6 +597,7 @@ function initDefaults() {
 initMap();
 initDefaults();
 updateResultsSummary();
+refreshLiveEarthquake();
 
 searchForm.addEventListener("submit", handleSearch);
 prevPageButton.addEventListener("click", () => {
@@ -572,3 +622,5 @@ presetButtons.forEach((button) => {
     applyDateRange(Number(button.dataset.rangeDays));
   });
 });
+
+window.setInterval(refreshLiveEarthquake, oneHourMs / 60);

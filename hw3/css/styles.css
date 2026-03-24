@@ -221,37 +221,36 @@ h2 {
 }
 
 .search-panel {
-  padding: 12px;
+  padding: 10px;
 }
 
 .search-panel-header {
   display: grid;
-  gap: 4px;
-  margin-bottom: 10px;
+  gap: 2px;
+  margin-bottom: 8px;
 }
 
 .search-hint {
   margin: 0;
   color: var(--text-soft);
-  font-size: 0.85rem;
+  font-size: 0.78rem;
 }
 
 .range-presets {
-  display: flex;
-  flex-wrap: wrap;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 6px;
-  margin-bottom: 10px;
+  margin-bottom: 8px;
 }
 
 .preset-chip {
-  flex: 1 1 0;
   min-width: 0;
-  padding: 7px 8px;
+  padding: 6px 7px;
   border-radius: 999px;
   border: 1px solid rgba(143, 232, 255, 0.22);
   background: rgba(255, 255, 255, 0.06);
   color: #edf5ff;
-  font: 700 0.78rem "Space Grotesk", sans-serif;
+  font: 700 0.74rem "Space Grotesk", sans-serif;
   box-shadow: none;
 }
 
@@ -263,30 +262,35 @@ h2 {
 
 .field-grid {
   display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 7px;
+}
+
+.field:last-child {
+  grid-column: 1 / -1;
 }
 
 .field {
   display: grid;
-  gap: 6px;
+  gap: 4px;
   font-weight: 800;
 }
 
 .field span {
   color: #eff5ff;
-  font-size: 0.85rem;
+  font-size: 0.78rem;
 }
 
 .field input,
 .flatpickr-input {
   width: 100%;
-  min-height: 42px;
-  padding: 10px 11px;
+  min-height: 38px;
+  padding: 8px 10px;
   border: 1px solid rgba(143, 232, 255, 0.18);
   border-radius: var(--radius-md);
   background: rgba(255, 255, 255, 0.07);
   color: #ffffff;
-  font: 600 0.9rem "Manrope", sans-serif;
+  font: 600 0.84rem "Manrope", sans-serif;
 }
 
 .field input:focus,
@@ -299,15 +303,15 @@ h2 {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 10px;
-  margin-top: 10px;
+  gap: 8px;
+  margin-top: 8px;
 }
 
 button {
   border: 0;
   border-radius: 999px;
-  padding: 11px 16px;
-  font-size: 0.9rem;
+  padding: 9px 14px;
+  font-size: 0.84rem;
   font-weight: 700;
   color: #fff8ef;
   background: linear-gradient(135deg, var(--ember) 0%, var(--ember-deep) 100%);
@@ -327,7 +331,7 @@ button:disabled {
 
 .form-message {
   margin: 0;
-  font-size: 0.84rem;
+  font-size: 0.76rem;
   font-weight: 800;
 }
 

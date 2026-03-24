@@ -20,7 +20,7 @@ const liveDetail = document.getElementById("live-detail");
 const oneDayMs = 24 * 60 * 60 * 1000;
 const oneHourMs = 60 * 60 * 1000;
 const defaultEndDate = new Date();
-const defaultStartDate = new Date(defaultEndDate.getTime() - (14 * oneDayMs));
+const defaultStartDate = new Date(defaultEndDate.getTime() - (7 * oneDayMs));
 const itemsPerPage = 6;
 const batchLimit = 2000;
 
@@ -650,13 +650,20 @@ function initDatePickers() {
 
 function initDefaults() {
   initDatePickers();
-  applyDateRange(14);
+  applyDateRange(7);
+}
+
+function runInitialSearch() {
+  handleSearch({
+    preventDefault() {},
+  });
 }
 
 initMap();
 initDefaults();
 updateResultsSummary();
 refreshLiveEarthquake();
+runInitialSearch();
 
 searchForm.addEventListener("submit", handleSearch);
 prevPageButton.addEventListener("click", () => {

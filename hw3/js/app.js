@@ -34,6 +34,8 @@ let startPicker = null;
 let endPicker = null;
 let liveFeature = null;
 let liveMarker = null;
+let liveRefreshTimer = null;
+let liveRequestInFlight = false;
 
 const featureIndex = new Map();
 
@@ -483,12 +485,29 @@ async function fetchLatestEarthquake() {
   }
 
   const data = await response.json();
-  return data.features?.[0] || null;
+  const sortedFeatures = [...(data.features || [])].sort(
+    (first, second) => (second.properties?.time || 0) - (first.properties?.time || 0),
+  );
+
+  return {
+    feature: sortedFeatures[0] || null,
+    generated: data.metadata?.generated || Date.now(),
+  };
 }
 
 async function refreshLiveEarthquake() {
+  if (liveRequestInFlight) {
+    return;
+  }
+
+  liveRequestInFlight = true;
+
   try {
-    const latest = await fetchLatestEarthquake();
+    const { feature: latest, generated } = await fetchLatestEarthquake();
+    const checkedTime = new Date(generated).toLocaleTimeString("en-US", {
+      hour: "numeric",
+      minute: "2-digit",
+    });
 
     if (!latest) {
       liveFeature = null;
@@ -497,7 +516,7 @@ async function refreshLiveEarthquake() {
         liveMarker = null;
       }
       liveHeading.textContent = "No earthquake reported in the last hour";
-      liveDetail.textContent = "This live block checks the most recent USGS event from the past hour.";
+      liveDetail.textContent = `Checked ${checkedTime} • no event found in the USGS past-hour feed`;
       return;
     }
 
@@ -505,11 +524,13 @@ async function refreshLiveEarthquake() {
     const magnitude = formatMagnitude(latest.properties.mag);
     const location = latest.properties.place || "Unknown location";
     liveHeading.textContent = `M ${magnitude} • ${location}`;
-    liveDetail.textContent = `${formatEventTime(latest.properties.time)} • latest event from the USGS past-hour feed`;
+    liveDetail.textContent = `${formatEventTime(latest.properties.time)} • checked ${checkedTime}`;
     attachLiveMarker();
   } catch (error) {
     liveHeading.textContent = "Live feed unavailable right now";
     liveDetail.textContent = error.message;
+  } finally {
+    liveRequestInFlight = false;
   }
 }
 
@@ -618,8 +639,18 @@ function initDatePickers() {
   const today = formatDateInput(defaultEndDate);
   const useCompactDatepicker = shouldUseCompactDatepicker();
 
+  if (useCompactDatepicker) {
+    startDateInput.type = "date";
+    endDateInput.type = "date";
+    startDateInput.value = formatDateInput(defaultStartDate);
+    endDateInput.value = formatDateInput(defaultEndDate);
+    syncDateBounds();
+    return;
+  }
+
   if (typeof flatpickr !== "undefined") {
     startPicker = flatpickr(startDateInput, {
+      disableMobile: true,
       altInput: !useCompactDatepicker,
       altFormat: "F j, Y",
       dateFormat: "Y-m-d",
@@ -632,6 +663,7 @@ function initDatePickers() {
     });
 
     endPicker = flatpickr(endDateInput, {
+      disableMobile: true,
       altInput: !useCompactDatepicker,
       altFormat: "F j, Y",
       dateFormat: "Y-m-d",
@@ -661,11 +693,20 @@ function runInitialSearch() {
   });
 }
 
+function scheduleLiveRefresh(delayMs = oneHourMs / 60) {
+  window.clearTimeout(liveRefreshTimer);
+  liveRefreshTimer = window.setTimeout(async () => {
+    await refreshLiveEarthquake();
+    scheduleLiveRefresh();
+  }, delayMs);
+}
+
 initMap();
 initDefaults();
 updateResultsSummary();
 refreshLiveEarthquake();
 runInitialSearch();
+scheduleLiveRefresh();
 
 searchForm.addEventListener("submit", handleSearch);
 prevPageButton.addEventListener("click", () => {
@@ -693,4 +734,14 @@ presetButtons.forEach((button) => {
 
 liveCard.addEventListener("click", focusLiveEarthquake);
 
-window.setInterval(refreshLiveEarthquake, oneHourMs / 60);
+document.addEventListener("visibilitychange", () => {
+  if (!document.hidden) {
+    refreshLiveEarthquake();
+    scheduleLiveRefresh();
+  }
+});
+
+window.addEventListener("focus", () => {
+  refreshLiveEarthquake();
+  scheduleLiveRefresh();
+});

@@ -287,8 +287,10 @@ h2 {
 }
 
 .flatpickr-wrapper {
+  display: block;
   width: 100%;
   min-width: 0;
+  max-width: 100%;
 }
 
 .field input,
@@ -306,8 +308,16 @@ h2 {
 
 .flatpickr-wrapper .flatpickr-input,
 .flatpickr-wrapper input {
+  display: block;
   width: 100%;
   max-width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+}
+
+.flatpickr-wrapper .flatpickr-input[readonly] {
+  width: 100% !important;
+  max-width: 100% !important;
 }
 
 .field input:focus,

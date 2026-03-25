@@ -320,6 +320,20 @@ h2 {
   max-width: 100% !important;
 }
 
+.field .flatpickr-input[readonly],
+.field input.flatpickr-input,
+.field input[readonly] {
+  width: 100% !important;
+  max-width: 100% !important;
+  min-width: 0 !important;
+}
+
+.field .numInputWrapper,
+.field .flatpickr-alt-input {
+  width: 100% !important;
+  max-width: 100% !important;
+}
+
 .field input:focus,
 .flatpickr-input:focus {
   outline: 3px solid rgba(143, 232, 255, 0.12);

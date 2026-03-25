@@ -468,21 +468,9 @@ async function fetchAllEarthquakes(startDate, endDate, minMagnitude) {
 }
 
 async function fetchLatestEarthquake() {
-  const now = new Date();
-  const oneHourAgo = new Date(now.getTime() - oneHourMs);
-  const endpoint = new URL("https://earthquake.usgs.gov/fdsnws/event/1/query");
-  const params = new URLSearchParams();
-  params.set("format", "geojson");
-  params.set("eventtype", "earthquake");
-  params.set("orderby", "time");
-  params.set("starttime", oneHourAgo.toISOString());
-  params.set("endtime", now.toISOString());
-  params.set("limit", "1");
-  endpoint.search = params.toString();
-
-  const response = await fetch(endpoint);
+  const response = await fetch("https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/all_hour.geojson");
   if (!response.ok) {
-    throw new Error(`USGS live request failed with status ${response.status}.`);
+    throw new Error(`USGS live feed failed with status ${response.status}.`);
   }
 
   const data = await response.json();
@@ -508,7 +496,7 @@ async function refreshLiveEarthquake() {
     const magnitude = formatMagnitude(latest.properties.mag);
     const location = latest.properties.place || "Unknown location";
     liveHeading.textContent = `M ${magnitude} • ${location}`;
-    liveDetail.textContent = `${formatEventTime(latest.properties.time)} • latest event reported within the last hour`;
+    liveDetail.textContent = `${formatEventTime(latest.properties.time)} • latest event from the USGS past-hour feed`;
     attachLiveMarker();
   } catch (error) {
     liveHeading.textContent = "Live feed unavailable right now";

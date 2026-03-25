@@ -41,6 +41,10 @@ function formatDateInput(date) {
   return date.toISOString().split("T")[0];
 }
 
+function shouldUseCompactDatepicker() {
+  return window.matchMedia("(max-width: 760px)").matches;
+}
+
 function parseDateValue(value) {
   const date = new Date(`${value}T00:00:00`);
   return Number.isNaN(date.getTime()) ? null : date;
@@ -468,7 +472,12 @@ async function fetchAllEarthquakes(startDate, endDate, minMagnitude) {
 }
 
 async function fetchLatestEarthquake() {
-  const response = await fetch("https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/all_hour.geojson");
+  const endpoint = new URL("https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/all_hour.geojson");
+  endpoint.searchParams.set("t", String(Date.now()));
+
+  const response = await fetch(endpoint, {
+    cache: "no-store",
+  });
   if (!response.ok) {
     throw new Error(`USGS live feed failed with status ${response.status}.`);
   }
@@ -607,10 +616,11 @@ function initMap() {
 
 function initDatePickers() {
   const today = formatDateInput(defaultEndDate);
+  const useCompactDatepicker = shouldUseCompactDatepicker();
 
   if (typeof flatpickr !== "undefined") {
     startPicker = flatpickr(startDateInput, {
-      altInput: true,
+      altInput: !useCompactDatepicker,
       altFormat: "F j, Y",
       dateFormat: "Y-m-d",
       defaultDate: formatDateInput(defaultStartDate),
@@ -622,7 +632,7 @@ function initDatePickers() {
     });
 
     endPicker = flatpickr(endDateInput, {
-      altInput: true,
+      altInput: !useCompactDatepicker,
       altFormat: "F j, Y",
       dateFormat: "Y-m-d",
       defaultDate: formatDateInput(defaultEndDate),

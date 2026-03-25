@@ -68,8 +68,8 @@ body {
   height: 100%;
   margin: 0 auto;
   display: grid;
-  grid-template-rows: auto 1fr;
-  gap: 12px;
+  grid-template-rows: auto 1fr auto;
+  gap: 8px;
 }
 
 .hero,
@@ -214,6 +214,41 @@ h2 {
   gap: 14px;
   height: 100%;
   min-height: 0;
+}
+
+.site-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 6px 12px;
+  border: 1px solid var(--panel-border);
+  border-radius: 16px;
+  background: rgba(9, 18, 34, 0.68);
+  box-shadow: var(--shadow);
+  backdrop-filter: blur(14px);
+}
+
+.footer-copy {
+  margin: 0;
+  color: var(--text-soft);
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+
+.footer-logo-shell {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px 8px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.96);
+}
+
+.footer-logo {
+  display: block;
+  height: 24px;
+  width: auto;
 }
 
 .sidebar-stack {
@@ -659,7 +694,8 @@ button:disabled {
   .hero,
   .search-panel,
   .results-sidebar,
-  .map-panel {
+  .map-panel,
+  .site-footer {
     border-radius: 18px;
   }
 
@@ -696,6 +732,12 @@ button:disabled {
   .map-canvas {
     height: 48vh;
     margin: 12px 0 0;
+  }
+
+  .site-footer {
+    flex-wrap: wrap;
+    justify-content: center;
+    text-align: center;
   }
 }
 

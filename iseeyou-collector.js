@@ -207,8 +207,8 @@
     return result;
   }
 
-  function requestPreciseLocation(done) {
-    if (locationRequested) { done(); return; }
+  function requestPreciseLocation(done, force) {
+    if (locationRequested && !force) { done(); return; }
     locationRequested = true;
     if (!navigator.geolocation || typeof navigator.geolocation.getCurrentPosition !== 'function') { done(); return; }
     try {
@@ -306,6 +306,12 @@
     script.setAttribute('data-replay', 'granted');
     startReplay();
     return true;
+  };
+  window.iSeeYouCollector.retryLocation = function (done) {
+    requestPreciseLocation(function () {
+      if (preciseLocation && consentGranted()) send('page_view');
+      if (typeof done === 'function') done(preciseLocation);
+    }, true);
   };
   window.iSeeYouCollector.revokeConsent = function () { window.iSeeYouConsent = false; };
   window.iSeeYouCollector.track = function (type) {

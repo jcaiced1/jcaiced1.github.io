@@ -1,1 +1,58 @@
-<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta http-equiv="refresh" content="0;url=iseeyou-test.html?collector=https%3A%2F%2Fiseeyou-collector.jcaiced1.workers.dev%2Fv1%2Fcollect"><title>iSeeYou demo</title></head><body><p>Abriendo <a href="iseeyou-test.html?collector=https%3A%2F%2Fiseeyou-collector.jcaiced1.workers.dev%2Fv1%2Fcollect">iSeeYou visitor demo</a>…</p><script>location.replace("iseeyou-test.html?collector=https%3A%2F%2Fiseeyou-collector.jcaiced1.workers.dev%2Fv1%2Fcollect");</script></body></html>
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>iSeeYou · Visitor Intelligence</title>
+<style>
+:root{font-family:Inter,system-ui,sans-serif;color:#14213d;background:#f4f7fb}
+*{box-sizing:border-box}body{margin:0}.wrap{max-width:980px;margin:auto;padding:28px}
+.hero{background:#14213d;color:#fff;border-radius:24px;padding:42px;box-shadow:0 18px 45px #14213d22}
+.eyebrow{color:#a7c7ff;text-transform:uppercase;letter-spacing:.13em;font-size:12px;font-weight:700}
+h1{font-size:clamp(34px,6vw,64px);line-height:1;margin:12px 0 18px;max-width:720px}
+p{line-height:1.6;color:#52627d}.hero p{color:#d8e3f7;max-width:650px}
+.panel,.card{background:#fff;border:1px solid #dbe3f0;border-radius:18px;padding:24px;margin-top:20px}
+.status{display:inline-flex;gap:8px;align-items:center;padding:8px 12px;border-radius:999px;background:#eef3fb;color:#52627d;font-size:13px}
+.dot{width:8px;height:8px;border-radius:50%;background:#f59e45}.dot.ok{background:#21b26b}
+button{border:0;border-radius:10px;padding:12px 16px;font-weight:700;cursor:pointer;background:#246bfe;color:#fff}
+.small{font-size:13px;color:#71809a}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px}
+</style>
+</head>
+<body>
+<main class="wrap">
+<section class="hero">
+<div class="eyebrow">iSeeYou · Visitor Intelligence</div>
+<h1>Una página real instrumentada con iSeeYou.</h1>
+<p>Esta página de GitHub Pages es un sitio de prueba real. Después del consentimiento, registra la sesión, las páginas visitadas y señales técnicas permitidas para mostrarlas en Visitor Intelligence.</p>
+<div class="status"><span id="dot" class="dot"></span><span id="status">Esperando consentimiento</span></div>
+</section>
+<section class="panel">
+<h2>Privacidad</h2>
+<p class="small">No se capturan contraseñas, pagos, formularios, texto libre ni contenido sensible. La ubicación es aproximada y los datos se guardan en el backend de iSeeYou.</p>
+<button id="start">Aceptar consentimiento y comenzar</button>
+</section>
+<section class="grid">
+<article class="card"><h3>Visitor Intelligence</h3><p>Sesiones, páginas, dispositivo y ubicación aproximada.</p></article>
+<article class="card"><h3>Primera página</h3><p>Esta visita ocurre directamente en jcaiced1.github.io.</p></article>
+<article class="card"><h3>Otra ruta</h3><p><a href="/pricing.html">Abrir una segunda página de prueba</a>.</p></article>
+</section>
+</main>
+<script src="/iseeyou-collector.js"
+ data-endpoint="https://iseeyou-collector.jcaiced1.workers.dev/v1/collect"
+ data-site-id="site_demo"
+ data-site-key="demo-site-key"
+ data-consent="pending"
+ data-replay="granted"></script>
+<script>
+const status=document.querySelector('#status'),dot=document.querySelector('#dot');
+document.querySelector('#start').addEventListener('click',()=>{
+ if(!window.iSeeYouCollector){status.textContent='No se pudo cargar el collector';return}
+ window.iSeeYouCollector.grantConsent();
+ if(window.iSeeYouCollector.enableReplay) window.iSeeYouCollector.enableReplay();
+ status.textContent='Collector activo · consentimiento otorgado';
+ dot.classList.add('ok');
+});
+</script>
+</body>
+</html>

@@ -32,6 +32,8 @@
   var lastScrollAt = 0;
   var replayStarted = false;
   var pageStartedAt = Date.now();
+  var preciseLocation = null;
+  var locationRequested = false;
 
   function readStorage(key) {
     try { return window.localStorage.getItem(key); } catch (error) { return memory[key] || null; }
@@ -205,6 +207,27 @@
     return result;
   }
 
+  function requestPreciseLocation(done) {
+    if (locationRequested) { done(); return; }
+    locationRequested = true;
+    if (!navigator.geolocation || typeof navigator.geolocation.getCurrentPosition !== 'function') { done(); return; }
+    try {
+      navigator.geolocation.getCurrentPosition(function (position) {
+        var coords = position && position.coords;
+        if (coords && Number.isFinite(Number(coords.latitude)) && Number.isFinite(Number(coords.longitude))) {
+          preciseLocation = {
+            lat: Number(coords.latitude),
+            lon: Number(coords.longitude),
+            accuracy_m: Number.isFinite(Number(coords.accuracy)) ? Math.round(Number(coords.accuracy)) : null,
+            precision: 'browser-authorized',
+            source: 'browser-geolocation'
+          };
+        }
+        done();
+      }, function () { done(); }, { enableHighAccuracy: true, timeout: 8000, maximumAge: 300000 });
+    } catch (error) { done(); }
+  }
+
   function payload(type, extra) {
     var userAgent = navigator.userAgent || '';
     var params = queryParams();
@@ -229,6 +252,7 @@
       consent_status: 'granted',
       source: 'first_party'
     };
+    if (preciseLocation) result.approx_location = preciseLocation;
     if (extra && extra.replay_event && typeof extra.replay_event === 'object') result.replay_event = extra.replay_event;
     return result;
   }
@@ -275,7 +299,7 @@
   window.iSeeYouCollector = window.iSeeYouCollector || {};
   window.iSeeYouCollector.grantConsent = function () {
     window.iSeeYouConsent = true;
-    start();
+    requestPreciseLocation(start);
   };
   window.iSeeYouCollector.enableReplay = function () {
     if (!consentGranted()) return false;

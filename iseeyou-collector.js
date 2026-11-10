@@ -19,6 +19,7 @@
   var endpoint = script.getAttribute('data-endpoint') || '/v1/collect';
   var siteId = script.getAttribute('data-site-id');
   var siteKey = script.getAttribute('data-site-key');
+  var tunnelBypass = script.getAttribute('data-tunnel-bypass') === 'true';
   if (!siteId || !siteKey) return;
 
   var storagePrefix = 'iseeyou:' + siteId + ':';
@@ -254,7 +255,7 @@
         method: 'POST',
         mode: 'cors',
         keepalive: true,
-        headers: { 'content-type': 'application/json', 'x-site-key': siteKey },
+        headers: { 'content-type': 'application/json', 'x-site-key': siteKey, ...(tunnelBypass ? { 'bypass-tunnel-reminder': '1' } : {}) },
         body: body,
         credentials: 'omit'
       }).catch(function () {});

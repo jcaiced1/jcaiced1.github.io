@@ -30,7 +30,7 @@ button{border:0;border-radius:10px;padding:12px 16px;font-weight:700;cursor:poin
 <section class="panel">
 <h2>Privacidad</h2>
 <p class="small">No se capturan contraseñas, pagos, formularios, texto libre ni contenido sensible. La ubicación es aproximada y los datos se guardan en el backend de iSeeYou.</p>
-<button id="start">Aceptar consentimiento y comenzar</button>
+<button id="start">Aceptar consentimiento y comenzar</button> <button id="retry" hidden>Reintentar ubicación</button>
 </section>
 <section class="grid">
 <article class="card"><h3>Visitor Intelligence</h3><p>Sesiones, páginas, dispositivo y ubicación aproximada.</p></article>
@@ -45,14 +45,17 @@ button{border:0;border-radius:10px;padding:12px 16px;font-weight:700;cursor:poin
  data-consent="pending"
  data-replay="granted"></script>
 <script>
-const status=document.querySelector('#status'),dot=document.querySelector('#dot');
+const status=document.querySelector('#status'),dot=document.querySelector('#dot'),retry=document.querySelector('#retry');
 document.querySelector('#start').addEventListener('click',()=>{
  if(!window.iSeeYouCollector){status.textContent='No se pudo cargar el collector';return}
  window.iSeeYouCollector.grantConsent();
  if(window.iSeeYouCollector.enableReplay) window.iSeeYouCollector.enableReplay();
- status.textContent='Collector activo · consentimiento otorgado';
+ status.textContent='Collector activo · esperando ubicación';
  dot.classList.add('ok');
+ retry.hidden=false;
 });
 </script>
 </body>
-</html>
+</html><script>
+retry.addEventListener('click',()=>{status.textContent='Solicitando ubicación…';if(window.iSeeYouCollector&&window.iSeeYouCollector.retryLocation){window.iSeeYouCollector.retryLocation((location)=>{if(location){status.textContent='Ubicación precisa registrada';retry.hidden=true;}else{status.textContent='Ubicación no disponible. Revisa el permiso de Safari.';}});}});
+</script>

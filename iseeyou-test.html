@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>iSeeYou · Demo de visitantes</title>
+<style>
+:root{font-family:Inter,system-ui,sans-serif;color:#14213d;background:#f4f7fb}*{box-sizing:border-box}
+body{margin:0}.wrap{max-width:980px;margin:auto;padding:28px}.hero{background:#14213d;color:#fff;border-radius:24px;padding:42px;box-shadow:0 18px 45px #14213d22}
+.eyebrow{color:#a7c7ff;text-transform:uppercase;letter-spacing:.13em;font-size:12px;font-weight:700}h1{font-size:clamp(34px,6vw,64px);line-height:1;margin:12px 0 18px;max-width:720px}
+p{line-height:1.6;color:#52627d}.hero p{color:#d8e3f7;max-width:650px}.panel,.card{background:#fff;border:1px solid #dbe3f0;border-radius:18px;padding:24px;margin-top:20px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px}label{display:block;font-size:13px;font-weight:700;color:#52627d;margin-bottom:7px}
+input{width:100%;padding:12px;border:1px solid #cbd7e8;border-radius:10px;font:inherit}button{border:0;border-radius:10px;padding:12px 16px;font-weight:700;cursor:pointer;background:#246bfe;color:#fff}
+button.secondary{background:#eaf1ff;color:#1d5bd5}.status{display:inline-flex;gap:8px;align-items:center;padding:8px 12px;border-radius:999px;background:#eef3fb;color:#52627d;font-size:13px}
+.dot{width:8px;height:8px;border-radius:50%;background:#f59e45}.dot.ok{background:#21b26b}.small{font-size:13px;color:#71809a}code{background:#eef3fb;padding:2px 5px;border-radius:5px}
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px;margin-top:20px}
+</style>
+</head>
+<body><main class="wrap">
+<section class="hero"><div class="eyebrow">iSeeYou · first-party demo</div><h1>Una página sencilla para probar visitantes reales.</h1><p>Registra navegación y eventos después del consentimiento. No captura formularios, contraseñas ni texto libre.</p><div class="status"><span id="dot" class="dot"></span><span id="status">Collector no iniciado</span></div></section>
+<section class="panel"><h2>Conectar collector</h2><p class="small">Usa una URL HTTPS pública para el backend. La página de GitHub no puede acceder a <code>127.0.0.1</code>.</p><div class="grid"><div><label for="endpoint">Endpoint HTTPS</label><input id="endpoint" placeholder="https://tu-tunel.trycloudflare.com/v1/collect"></div><div><label for="site-key">Site key pública</label><input id="site-key" value="demo-site-key"></div></div><p><button id="start">Aceptar consentimiento y comenzar</button></p></section>
+<section class="cards"><article class="card"><h3>Página principal</h3><p>Permanece aquí para generar una sesión.</p></article><article class="card"><h3>Pricing</h3><p>Simula otra página.</p><button class="secondary route" data-path="/pricing">Visitar pricing</button></article><article class="card"><h3>Contacto</h3><p>Ruta de prueba sin formulario.</p><button class="secondary route" data-path="/contact">Visitar contacto</button></article></section>
+</main>
+<script>
+const endpoint=document.querySelector('#endpoint');const query=new URLSearchParams(location.search).get('collector');if(query)endpoint.value=query;
+const setStatus=(text,ok=false)=>{document.querySelector('#status').textContent=text;document.querySelector('#dot').classList.toggle('ok',ok)};
+document.querySelector('#start').addEventListener('click',()=>{const value=endpoint.value.trim();if(!/^https:\/\//.test(value)){setStatus('Necesitas un endpoint HTTPS público');return}const script=document.createElement('script');script.src='/iseeyou-collector.js';script.dataset.endpoint=value;script.dataset.siteId='site_demo';script.dataset.siteKey=document.querySelector('#site-key').value.trim();script.dataset.consent='pending';script.dataset.replay='granted';script.onload=()=>{window.iSeeYouCollector.grantConsent();window.iSeeYouCollector.enableReplay();setStatus('Collector activo · consentimiento otorgado',true)};script.onerror=()=>setStatus('No se pudo cargar el collector');document.head.appendChild(script)});
+document.querySelectorAll('.route').forEach(button=>button.addEventListener('click',()=>{history.pushState({},'',button.dataset.path);document.title='iSeeYou · '+button.textContent;setStatus('Navegando por '+button.dataset.path,true);window.scrollTo({top:0,behavior:'smooth'})}));
+</script></body></html>

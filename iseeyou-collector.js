@@ -34,6 +34,7 @@
   var pageStartedAt = Date.now();
   var preciseLocation = null;
   var locationRequested = false;
+  var fingerprintSignals = null;
 
   function readStorage(key) {
     try { return window.localStorage.getItem(key); } catch (error) { return memory[key] || null; }
@@ -203,6 +204,8 @@
       new URLSearchParams(window.location.search).forEach(function (value, key) {
         if (/^utm_(source|medium|campaign|term|content)$/i.test(key)) result[key.toLowerCase()] = value.slice(0, 200);
       });
+      var attribution = new URLSearchParams(window.location.search).get('iseeyou_attribution');
+      if (attribution) result.iseeyou_attribution = attribution.slice(0, 180);
     } catch (error) {}
     return result;
   }
@@ -226,6 +229,27 @@
         done();
       }, function () { done(); }, { enableHighAccuracy: true, timeout: 8000, maximumAge: 300000 });
     } catch (error) { done(); }
+  }
+
+  function quickHash(value) {
+    var hash = 2166136261;
+    for (var index = 0; index < String(value || '').length; index += 1) { hash ^= String(value).charCodeAt(index); hash = Math.imul(hash, 16777619); }
+    return (hash >>> 0).toString(16).padStart(8, '0');
+  }
+
+  function collectFingerprintSignals() {
+    if (fingerprintSignals) return fingerprintSignals;
+    var canvasHash = null, webglVendor = null, webglRenderer = null, webglParametersHash = null;
+    try {
+      var canvas = document.createElement('canvas'); canvas.width = 160; canvas.height = 40;
+      var context = canvas.getContext('2d'); context.textBaseline = 'top'; context.font = '14px Arial'; context.fillStyle = '#246bfe'; context.fillText('iSeeYou', 3, 3); context.fillStyle = '#f59e45'; context.fillRect(88, 14, 45, 18); canvasHash = quickHash(canvas.toDataURL());
+    } catch (error) {}
+    try {
+      var probe = document.createElement('canvas'); var gl = probe.getContext('webgl') || probe.getContext('experimental-webgl');
+      if (gl) { var debug = gl.getExtension('WEBGL_debug_renderer_info'); webglVendor = debug ? String(gl.getParameter(debug.UNMASKED_VENDOR_WEBGL) || '').slice(0, 160) : null; webglRenderer = debug ? String(gl.getParameter(debug.UNMASKED_RENDERER_WEBGL) || '').slice(0, 160) : null; webglParametersHash = quickHash([gl.getParameter(gl.VERSION), gl.getParameter(gl.SHADING_LANGUAGE_VERSION), gl.getParameter(gl.MAX_TEXTURE_SIZE), gl.getParameter(gl.MAX_VERTEX_ATTRIBS)].join('|')); }
+    } catch (error) {}
+    fingerprintSignals = { canvas_hash: canvasHash, webgl_vendor: webglVendor, webgl_renderer: webglRenderer, webgl_parameters_hash: webglParametersHash, fingerprint: quickHash([canvasHash, webglVendor, webglRenderer, webglParametersHash, navigator.platform, navigator.hardwareConcurrency].join('|')) };
+    return fingerprintSignals;
   }
 
   function payload(type, extra) {
@@ -252,6 +276,8 @@
       consent_status: 'granted',
       source: 'first_party'
     };
+    if (consentGranted()) Object.assign(result, collectFingerprintSignals());
+    if (params.iseeyou_attribution) result.attribution_token = params.iseeyou_attribution;
     if (preciseLocation) result.approx_location = preciseLocation;
     if (extra && extra.replay_event && typeof extra.replay_event === 'object') result.replay_event = extra.replay_event;
     return result;

@@ -26,6 +26,7 @@
   var sessionStorageKey = storagePrefix + 'session_key';
   var deviceStorageKey = storagePrefix + 'device_key';
   var sessionStartedKey = storagePrefix + 'session_started';
+  var attributionStorageKey = storagePrefix + 'attribution_token';
   var memory = {};
   var replayQueue = [];
   var replayTimer = null;
@@ -205,6 +206,8 @@
         if (/^utm_(source|medium|campaign|term|content)$/i.test(key)) result[key.toLowerCase()] = value.slice(0, 200);
       });
       var attribution = new URLSearchParams(window.location.search).get('iseeyou_attribution');
+      if (attribution) writeStorage(attributionStorageKey, attribution.slice(0, 180));
+      else attribution = readStorage(attributionStorageKey);
       if (attribution) result.iseeyou_attribution = attribution.slice(0, 180);
     } catch (error) {}
     return result;
